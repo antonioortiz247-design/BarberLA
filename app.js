@@ -30,13 +30,44 @@ let state = {
     isAdmin: sessionStorage.getItem('barber_admin') === 'true'
 };
 
-// --- Initialization ---
+// --- Initialization & UI Helpers ---
+function showToast(text) {
+    const toast = document.getElementById('toast');
+    if (toast) {
+        toast.textContent = text;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+}
+
+function hideLoader() {
+    const loader = document.getElementById('loader');
+    if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => {
+            loader.style.display = 'none';
+        }, 500);
+    }
+    renderView();
+}
+
 function initSupabase() {
     try {
         if (window.supabase) {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log('Supabase client initialized with new key');
+            console.log('Supabase client initialized');
+            
+            // Si ya se intentó cargar data y falló por falta de supabase, reintentar ahora
+            if (state.view === 'home' && state.services === initialServices) {
+                fetchData().then(() => {
+                    setupRealtime();
+                    console.log('Post-init data sync complete');
+                });
+            }
             return true;
+        } else {
+            console.warn('Supabase SDK not loaded yet, retrying...');
+            setTimeout(initSupabase, 500);
         }
     } catch (e) {
         console.error('Error initializing Supabase:', e);
@@ -69,6 +100,13 @@ function navigateTo(viewId, event) {
     if (targetView) {
         targetView.classList.add('active');
         targetView.style.display = 'block';
+    } else {
+        console.error('View not found:', viewId);
+        // If target view not found, go home
+        if (viewId !== 'home') {
+            navigateTo('home');
+        }
+        return;
     }
     
     // Update Navigation UI
@@ -86,39 +124,63 @@ function navigateTo(viewId, event) {
 
 // --- Data Fetching ---
 async function fetchData() {
-    if (!supabase) return;
+    if (!supabase) {
+        console.warn('Supabase not initialized, using fallbacks');
+        renderView();
+        return;
+    }
     
     try {
+        console.log('Fetching data from Supabase...');
         const { data: services, error: sError } = await supabase.from('services').select('*').order('id');
-        if (!sError && services && services.length > 0) state.services = services;
+        if (!sError && services && services.length > 0) {
+            state.services = services;
+            console.log('Services loaded from Supabase:', services.length);
+        } else if (sError) {
+            console.warn('Error fetching services (using fallbacks):', sError);
+        }
 
         const { data: products, error: pError } = await supabase.from('products').select('*').order('id');
-        if (!pError && products && products.length > 0) state.products = products;
+        if (!pError && products && products.length > 0) {
+            state.products = products;
+            console.log('Products loaded from Supabase:', products.length);
+        } else if (pError) {
+            console.warn('Error fetching products (using fallbacks):', pError);
+        }
 
-        if (state.isAdmin) await fetchBookings();
+        if (state.isAdmin) {
+            console.log('User is admin, fetching bookings...');
+            await fetchBookings();
+        }
         
         renderView();
     } catch (error) {
-        console.warn('Database error, using fallbacks:', error);
+        console.warn('Unexpected fetch error, using fallbacks:', error);
         renderView();
     }
 }
 
 async function fetchBookings() {
-    if (!supabase) return;
+    if (!supabase) return Promise.resolve();
     try {
         const { data: bookings, error } = await supabase
             .from('bookings')
             .select('*')
             .order('date', { ascending: true });
         
-        if (!error) state.allBookings = bookings;
+        if (!error) {
+            state.allBookings = bookings;
+            return bookings;
+        } else {
+            console.warn('Error fetching bookings:', error);
+            return [];
+        }
     } catch (e) {
         console.error('Error fetching bookings:', e);
+        return [];
     }
 }
 
-// --- Realtime Subscription ---
 function setupRealtime() {
     if (!supabase) return;
     supabase
@@ -142,7 +204,6 @@ function renderView() {
             case 'tienda': renderStore(); break;
             case 'carrito': renderCart(); break;
             case 'checkout': renderCheckout(); break;
-            case 'admin-login': /* already handled by display:block */ break;
             case 'admin-dash': renderAdminDashboard(); break;
         }
         updateCartBadge();
@@ -161,7 +222,6 @@ function renderBooking() {
 }
 
 function renderAdminDashboard() {
-    // 1. Render Services Prices
     const servicesList = document.getElementById('admin-services-list');
     if (servicesList) {
         servicesList.innerHTML = state.services.map(s => `
@@ -175,7 +235,6 @@ function renderAdminDashboard() {
         `).join('');
     }
 
-    // 2. Render Scheduled Bookings
     const bookingsList = document.getElementById('admin-bookings-list');
     if (bookingsList) {
         if (state.allBookings.length === 0) {
@@ -223,7 +282,6 @@ function renderAdminDashboard() {
         }
     }
 
-    // 3. Render Product Management
     const productsList = document.getElementById('admin-products-list');
     if (productsList) {
         productsList.innerHTML = state.products.map(p => `
@@ -343,7 +401,8 @@ function renderCart() {
     
     if (state.cart.length === 0) {
         cartEl.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 2rem">Tu carrito está vacío</p>`;
-        document.getElementById('checkout-btn').style.display = 'none';
+        const checkBtn = document.getElementById('checkout-btn');
+        if (checkBtn) checkBtn.style.display = 'none';
         return;
     }
 
@@ -551,7 +610,14 @@ function checkAdmin() {
         state.isAdmin = true;
         sessionStorage.setItem('barber_admin', 'true');
         showToast('Bienvenido, Admin');
-        fetchBookings().then(() => navigateTo('admin-dash'));
+        
+        // Cargar citas y luego navegar
+        const bookingPromise = fetchBookings();
+        if (bookingPromise && typeof bookingPromise.then === 'function') {
+            bookingPromise.then(() => navigateTo('admin-dash'));
+        } else {
+            navigateTo('admin-dash');
+        }
     } else {
         showToast('Contraseña incorrecta');
     }
@@ -579,7 +645,6 @@ async function addNewProduct() {
     else {
         showToast('Producto agregado');
         fetchData();
-        // Clear form
         document.getElementById('new-prod-name').value = '';
         document.getElementById('new-prod-price').value = '';
         const preview = document.getElementById('image-preview');
@@ -696,7 +761,6 @@ async function confirmBooking() {
     }
 }
 
-// --- WhatsApp Store Integration ---
 function sendToWhatsApp() {
     if (!state.booking && state.cart.length === 0) return;
     let total = 0;
@@ -721,82 +785,35 @@ function sendToWhatsApp() {
     window.open(`https://wa.me/5611451113?text=${encodeURIComponent(message)}`, '_blank');
 }
 
-// --- Initialization & UI Helpers ---
-function showToast(text) {
-    const toast = document.getElementById('toast');
-    if (toast) {
-        toast.textContent = text;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
-    }
-}
-
-function hideLoader() {
-    const loader = document.getElementById('loader');
-    if (loader) {
-        loader.style.opacity = '0';
-        setTimeout(() => {
-            loader.style.display = 'none';
-        }, 500);
-    }
-    renderView();
-}
-
-// Renderización de la vista de agenda (nueva función)
-function renderBooking() {
-    const serviceSelect = document.getElementById('booking-service');
-    if (serviceSelect) {
-        const currentSelection = serviceSelect.value;
-        serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
-            state.services.map(s => `<option value="${s.id}" ${s.id == currentSelection ? 'selected' : ''}>${s.name} - $${s.price}</option>`).join('');
-    }
-}
-
-function renderView() {
-    try {
-        switch (state.view) {
-            case 'home': renderHome(); break;
-            case 'servicios': renderServices(); break;
-            case 'agenda': renderBooking(); break;
-            case 'tienda': renderStore(); break;
-            case 'carrito': renderCart(); break;
-            case 'checkout': renderCheckout(); break;
-            case 'admin-dash': renderAdminDashboard(); break;
-        }
-        updateCartBadge();
-    } catch (err) {
-        console.error('Error rendering view:', err);
-    }
-}
-
+// --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Inicializar Supabase
-    try {
-        if (window.supabase) {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        }
-    } catch (e) {
-        console.error('Error al inicializar Supabase:', e);
-    }
-
-    // 2. Forzar ocultar loader tras un tiempo razonable
-    setTimeout(hideLoader, 1500);
-
-    // 3. Cargar datos de la base de datos
-    if (supabase) {
-        fetchData().then(() => {
-            setupRealtime();
-            renderView();
-        }).catch(err => {
-            console.error('Error en fetchData:', err);
-            renderView();
-        });
-    } else {
-        renderView();
-    }
-
-    // 4. Configuración de UI básica
+    console.log('App starting...');
+    
+    // 1. Initial UI setup
     const today = new Date().toISOString().split('T')[0];
     const bookingDate = document.getElementById('booking-date');
     if (bookingDate) bookingDate.setAttribute('min', today);
+
+    // 2. Initial Render (with fallbacks)
+    navigateTo('home');
+    
+    // 3. Supabase setup
+    console.log('Initializing Supabase...');
+    if (initSupabase()) {
+        fetchData().then(() => {
+            setupRealtime();
+            console.log('Initial data sync complete');
+        }).catch(err => {
+            console.error('Initial fetch failed:', err);
+        });
+    } else {
+        console.warn('Supabase not available, running in fallback mode');
+    }
+
+    // 4. Force hide loader after a short delay
+    // This ensures that even if fetching takes time, the user can see the fallback data
+    setTimeout(() => {
+        console.log('Force hiding loader');
+        hideLoader();
+    }, 1500);
 });
