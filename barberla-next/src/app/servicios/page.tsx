@@ -28,30 +28,30 @@ export default function ServiciosPage() {
   }, []);
 
   return (
-    <main className="min-h-screen pb-24 bg-[#050505]">
+    <main className="min-h-screen pb-28 bg-[#060606]">
       <Header />
-      <div className="max-w-[500px] mx-auto px-6">
-        <h2 className="text-3xl font-extrabold text-white mb-8 tracking-tight">Nuestros <span className="text-[#c5a059]">Servicios</span></h2>
+      <div className="premium-shell">
+        <h2 className="premium-title text-white mb-8">Nuestros <span className="text-[#c8a96a]">Servicios</span></h2>
         
         <div className="space-y-4">
           {services.map((service) => (
             <div 
               key={service.id}
-              className="flex justify-between items-center p-5 bg-[#0f0f0f] border border-[#222] rounded-2xl group"
+              className="flex justify-between items-center p-5 bg-[#101010] border border-[#272727] rounded-2xl group hover:border-[#c8a96a]/40 transition-all duration-300"
             >
               <div className="flex flex-col gap-1">
                 <h4 className="text-white font-bold text-lg group-hover:text-[#c5a059] transition-colors">{service.name}</h4>
-                <p className="text-[#888] text-sm flex items-center gap-1.5 font-light">
-                  <Clock size={14} className="text-[#c5a059]" /> {service.duration}
+                <p className="text-[#a1a1a1] text-sm flex items-center gap-1.5 font-light">
+                  <Clock size={14} className="text-[#c8a96a]" /> {service.duration}
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-xl font-extrabold text-[#c5a059] tracking-tight mb-2">
+                <div className="text-xl font-extrabold text-[#c8a96a] tracking-tight mb-2">
                   ${service.price}
                 </div>
                 <Link 
                   href={`/agenda?service=${service.id}`}
-                  className="inline-block text-[10px] font-bold uppercase tracking-widest bg-[#1a1a1a] text-[#c5a059] px-4 py-2 rounded-lg border border-[#c5a059]/20 hover:bg-[#c5a059] hover:text-black transition-all"
+                  className="inline-block text-[10px] font-bold uppercase tracking-widest bg-[#1a1a1a] text-[#c8a96a] px-4 py-2 rounded-lg border border-[#c8a96a]/20 hover:bg-[#c8a96a] hover:text-black transition-all"
                 >
                   Reservar
                 </Link>
