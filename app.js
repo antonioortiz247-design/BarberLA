@@ -1,41 +1,76 @@
+// --- Supabase Configuration ---
+const SUPABASE_URL = 'https://krkazlphcjgkvcazbdlj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtya2F6bHBoY2pna3ZjYXpiZGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMDU4NjgsImV4cCI6MjA5MDY4MTg2OH0.aaFH8ngWsCgyogfmZT1SvNr5OcuoquDV0lQywlwz-AQ';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // --- State Management ---
-const initialServices = [
-    { id: 1, name: 'Corte de Autor', price: 350, duration: '45 min', icon: 'fa-cut', featured: true },
-    { id: 2, name: 'Ritual de Barba', price: 250, duration: '30 min', icon: 'fa-broom', featured: true },
-    { id: 3, name: 'Corte + Barba', price: 500, duration: '75 min', icon: 'fa-user-tie', featured: false },
-    { id: 4, name: 'Perfilado de Ceja', price: 100, duration: '15 min', icon: 'fa-eye', featured: false }
-];
-
-const initialProducts = [
-    { id: 101, name: 'Playera Barber', price: 450, image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=400', featured: true },
-    { id: 102, name: 'Gorra Barber Premium', price: 380, image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=400', featured: true },
-    { id: 103, name: 'Pomada para Cabello', price: 220, image: 'https://images.unsplash.com/photo-1599305090598-fe179d501c27?auto=format&fit=crop&q=80&w=400', featured: false },
-    { id: 104, name: 'Aceite para Barba', price: 280, image: 'https://images.unsplash.com/photo-1626285861696-9f0bf5a49c6d?auto=format&fit=crop&q=80&w=400', featured: false }
-];
-
 let state = {
     view: 'home',
     cart: JSON.parse(localStorage.getItem('barber_cart')) || [],
-    booking: JSON.parse(localStorage.getItem('barber_booking')) || null,
-    allBookings: JSON.parse(localStorage.getItem('barber_all_bookings')) || [],
-    services: JSON.parse(localStorage.getItem('barber_services')) || initialServices,
-    products: JSON.parse(localStorage.getItem('barber_products')) || initialProducts,
+    booking: null, // Temporary booking during checkout
+    allBookings: [], // From Supabase
+    services: [], // From Supabase
+    products: [], // From Supabase
     isAdmin: sessionStorage.getItem('barber_admin') === 'true'
 };
+
+// --- Data Fetching ---
+async function fetchData() {
+    try {
+        // Fetch Services
+        const { data: services, error: sError } = await supabase.from('services').select('*').order('id');
+        if (sError) throw sError;
+        state.services = services;
+
+        // Fetch Products
+        const { data: products, error: pError } = await supabase.from('products').select('*').order('id');
+        if (pError) throw pError;
+        state.products = products;
+
+        // Fetch Bookings (if admin)
+        if (state.isAdmin) {
+            await fetchBookings();
+        }
+
+        renderView();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        showToast('Error al conectar con la base de datos');
+    }
+}
+
+async function fetchBookings() {
+    const { data: bookings, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('date', { ascending: true });
+    
+    if (error) console.error('Error fetching bookings:', error);
+    else state.allBookings = bookings;
+}
+
+// --- Realtime Subscription ---
+function setupRealtime() {
+    supabase
+        .channel('public:bookings')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, payload => {
+            fetchBookings().then(() => {
+                if (state.view === 'admin-dash') renderAdminDashboard();
+            });
+        })
+        .subscribe();
+}
 
 // --- Navigation ---
 function navigateTo(viewId, event) {
     if (event) event.preventDefault();
     
-    // Admin route protection
     if (viewId === 'admin-dash' && !state.isAdmin) {
         viewId = 'admin-login';
     }
     
-    // Update State
     state.view = viewId;
     
-    // Update UI
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
     
@@ -54,24 +89,12 @@ function navigateTo(viewId, event) {
 // --- Render Logic ---
 function renderView() {
     switch (state.view) {
-        case 'home':
-            renderHome();
-            break;
-        case 'servicios':
-            renderServices();
-            break;
-        case 'tienda':
-            renderStore();
-            break;
-        case 'carrito':
-            renderCart();
-            break;
-        case 'checkout':
-            renderCheckout();
-            break;
-        case 'admin-dash':
-            renderAdminDashboard();
-            break;
+        case 'home': renderHome(); break;
+        case 'servicios': renderServices(); break;
+        case 'tienda': renderStore(); break;
+        case 'carrito': renderCart(); break;
+        case 'checkout': renderCheckout(); break;
+        case 'admin-dash': renderAdminDashboard(); break;
     }
     updateCartBadge();
 }
@@ -94,8 +117,8 @@ function renderAdminDashboard() {
     if (state.allBookings.length === 0) {
         bookingsList.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1rem">No hay citas agendadas.</p>`;
     } else {
-        bookingsList.innerHTML = state.allBookings.sort((a, b) => new Date(a.date) - new Date(b.date)).map(b => {
-            const service = state.services.find(s => s.id == b.serviceId);
+        bookingsList.innerHTML = state.allBookings.map(b => {
+            const service = state.services.find(s => s.id == b.service_id);
             const statusColor = b.status === 'Confirmada' ? 'var(--success)' : (b.status === 'Cancelada' ? 'var(--danger)' : 'var(--gold)');
             return `
                 <div class="card" style="margin-bottom: 0.8rem; border-color: ${statusColor}; padding: 0.8rem">
@@ -103,7 +126,7 @@ function renderAdminDashboard() {
                         <div style="flex: 1">
                             <div style="display: flex; justify-content: space-between; align-items: center">
                                 <h4 style="font-size: 0.95rem; color: var(--gold)">${b.name}</h4>
-                                <span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 20px; background: ${statusColor}; color: #000; font-weight: 800">${b.status || 'Pendiente'}</span>
+                                <span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 20px; background: ${statusColor}; color: #000; font-weight: 800">${b.status}</span>
                             </div>
                             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0.2rem 0">
                                 <i class="fas fa-cut"></i> ${service ? service.name : 'Servicio desconocido'}
@@ -163,104 +186,17 @@ function renderAdminDashboard() {
     `).join('');
 }
 
-function deleteBooking(id) {
-    if (confirm('¿Estás seguro de que deseas eliminar esta cita?')) {
-        state.allBookings = state.allBookings.filter(b => b.id !== id);
-        localStorage.setItem('barber_all_bookings', JSON.stringify(state.allBookings));
-        showToast('Cita eliminada');
-        renderAdminDashboard();
-    }
-}
-
-function updateBookingStatus(id, newStatus) {
-    const booking = state.allBookings.find(b => b.id === id);
-    if (booking) {
-        booking.status = newStatus;
-        localStorage.setItem('barber_all_bookings', JSON.stringify(state.allBookings));
-        showToast(`Cita ${newStatus.toLowerCase()} exitosamente`);
-        renderAdminDashboard();
-    }
-}
-
-function confirmAndNotify(id) {
-    const booking = state.allBookings.find(b => b.id === id);
-    if (booking) {
-        booking.status = 'Confirmada';
-        localStorage.setItem('barber_all_bookings', JSON.stringify(state.allBookings));
-        
-        // Prepare WhatsApp confirmation message
-        const service = state.services.find(s => s.id == booking.serviceId);
-        const message = `✅ *¡Cita Confirmada!*\n\nHola ${booking.name}, tu pago ha sido verificado. Te esperamos:\n\n✂️ *Servicio:* ${service.name}\n📅 *Fecha:* ${booking.date}\n⏰ *Hora:* ${booking.time}\n📍 *Ubicación:* BarberLA\n\n¡Gracias por tu confianza!`;
-        
-        const encodedMessage = encodeURIComponent(message);
-        window.open(`https://wa.me/${booking.phone}?text=${encodedMessage}`, '_blank');
-        
-        showToast('Cita confirmada y notificación preparada');
-        renderAdminDashboard();
-    }
-}
-
-function viewProof(base64) {
-    const modal = document.getElementById('image-viewer');
-    const fullImg = document.getElementById('full-image');
-    modal.style.display = "block";
-    fullImg.src = base64;
-}
-
-function closeImageViewer() {
-    document.getElementById('image-viewer').style.display = "none";
-}
-
-function updateProduct(id) {
-    const nameInput = document.querySelector(`.edit-prod-name[data-id="${id}"]`);
-    const priceInput = document.querySelector(`.edit-prod-price[data-id="${id}"]`);
-    
-    const product = state.products.find(p => p.id === id);
-    if (product) {
-        product.name = nameInput.value;
-        product.price = parseFloat(priceInput.value);
-        
-        localStorage.setItem('barber_products', JSON.stringify(state.products));
-        showToast('Producto actualizado');
-        renderView(); // Refresh everything
-    }
-}
-
-function deleteProduct(id) {
-    if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-        state.products = state.products.filter(p => p.id !== id);
-        localStorage.setItem('barber_products', JSON.stringify(state.products));
-        showToast('Producto eliminado');
-        renderAdminDashboard();
-        if (state.view === 'home') renderHome();
-        if (state.view === 'tienda') renderStore();
-    }
-}
-
-function saveServicePrices() {
+async function saveServicePrices() {
     const inputs = document.querySelectorAll('.service-price-input');
-    inputs.forEach(input => {
+    for (const input of inputs) {
         const id = parseInt(input.dataset.id);
         const newPrice = parseFloat(input.value);
-        const service = state.services.find(s => s.id === id);
-        if (service && !isNaN(newPrice)) {
-            service.price = newPrice;
+        if (!isNaN(newPrice)) {
+            await supabase.from('services').update({ price: newPrice }).eq('id', id);
         }
-    });
-
-    localStorage.setItem('barber_services', JSON.stringify(state.services));
-    showToast('Precios de servicios actualizados');
-    
-    // Refresh relevant views
-    if (state.view === 'home') renderHome();
-    if (state.view === 'servicios') renderServices();
-    
-    // Update booking select
-    const serviceSelect = document.getElementById('booking-service');
-    if (serviceSelect) {
-        serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
-            state.services.map(s => `<option value="${s.id}">${s.name} - $${s.price}</option>`).join('');
     }
+    showToast('Precios actualizados');
+    fetchData();
 }
 
 function renderHome() {
@@ -337,7 +273,7 @@ function renderCart() {
         const subtotal = item.price * item.quantity;
         total += subtotal;
         html += `
-            <div class="service-item" style="border-bottom: 1px solid #222; margin-bottom: 1rem; padding-bottom: 1rem">
+            <div class="service-item" style="border-bottom: 1px solid var(--border); margin-bottom: 1rem; padding-bottom: 1rem">
                 <div class="info">
                     <h4>${item.name}</h4>
                     <p>$${item.price} c/u</p>
@@ -376,12 +312,10 @@ function renderCheckout() {
     let html = '';
     let total = 0;
 
-    // Appointment Summary
     if (state.booking) {
         const service = state.services.find(s => s.id == state.booking.serviceId);
         html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem">
-                    <h4 style="color: var(--gold)">Tu Cita</h4>
-                    <button class="btn btn-outline" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.65rem" onclick="clearBooking()">Cancelar Cita</button>
+                    <h4 style="color: var(--gold)">Tu Cita (Pendiente de Verificación)</h4>
                  </div>`;
         html += `
             <div class="summary-line">
@@ -396,11 +330,9 @@ function renderCheckout() {
         total += service.price;
     }
 
-    // Products Summary
     if (state.cart.length > 0) {
         html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem">
                     <h4 style="color: var(--gold)">Productos</h4>
-                    <button class="btn btn-outline" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.65rem" onclick="navigateTo('carrito')">Editar</button>
                  </div>`;
         state.cart.forEach(item => {
             html += `
@@ -433,32 +365,19 @@ function renderCheckout() {
 function addToCart(productId) {
     const product = state.products.find(p => p.id === productId);
     const existing = state.cart.find(item => item.id === productId);
-
-    if (existing) {
-        existing.quantity += 1;
-    } else {
-        state.cart.push({ ...product, quantity: 1 });
-    }
-
+    if (existing) existing.quantity += 1;
+    else state.cart.push({ ...product, quantity: 1 });
     localStorage.setItem('barber_cart', JSON.stringify(state.cart));
-    showToast('Producto agregado al carrito');
+    showToast('Producto agregado');
     updateCartBadge();
-    
-    // Suggest going to cart
-    setTimeout(() => {
-        if (confirm('¿Deseas ver tu carrito ahora?')) {
-            navigateTo('carrito');
-        }
-    }, 500);
 }
 
 function updateQuantity(productId, delta) {
     const item = state.cart.find(i => i.id === productId);
     if (item) {
         item.quantity += delta;
-        if (item.quantity <= 0) {
-            removeFromCart(productId);
-        } else {
+        if (item.quantity <= 0) removeFromCart(productId);
+        else {
             localStorage.setItem('barber_cart', JSON.stringify(state.cart));
             renderCart();
             updateCartBadge();
@@ -471,21 +390,7 @@ function removeFromCart(productId) {
     localStorage.setItem('barber_cart', JSON.stringify(state.cart));
     updateCartBadge();
     if (state.view === 'carrito') renderCart();
-    if (state.view === 'checkout') renderCheckout();
 }
-
-function clearCart() {
-     state.cart = [];
-     localStorage.removeItem('barber_cart');
-     updateCartBadge();
-     renderView();
- }
- 
- function clearBooking() {
-    state.booking = null;
-    localStorage.removeItem('barber_booking');
-    renderCheckout();
- }
 
 function updateCartBadge() {
     const count = state.cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -494,17 +399,12 @@ function updateCartBadge() {
     const floatBadge = document.getElementById('cart-count-float');
 
     if (count > 0) {
-        // Nav badge
         badge.textContent = count;
         badge.style.display = 'flex';
-        
-        // Floating cart
         if (state.view !== 'carrito' && state.view !== 'checkout') {
             floatCart.style.display = 'flex';
             floatBadge.textContent = count;
-        } else {
-            floatCart.style.display = 'none';
-        }
+        } else floatCart.style.display = 'none';
     } else {
         badge.style.display = 'none';
         floatCart.style.display = 'none';
@@ -519,11 +419,11 @@ function previewImage(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = e => {
             const preview = document.getElementById('image-preview');
             preview.style.backgroundImage = `url(${e.target.result})`;
-            preview.innerHTML = ''; // Limpiar iconos/texto
-            currentProductImage = e.target.result; // Guardar Base64
+            preview.innerHTML = '';
+            currentProductImage = e.target.result;
         };
         reader.readAsDataURL(file);
     }
@@ -533,7 +433,7 @@ function previewBookingProof(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = e => {
             const preview = document.getElementById('booking-proof-preview');
             preview.style.backgroundImage = `url(${e.target.result})`;
             preview.innerHTML = ''; 
@@ -545,14 +445,12 @@ function previewBookingProof(event) {
 
 function checkAdmin() {
     const pass = document.getElementById('admin-pass').value;
-    if (pass === 'admin123') { // Contraseña simple para el ejemplo
+    if (pass === 'admin123') {
         state.isAdmin = true;
         sessionStorage.setItem('barber_admin', 'true');
         showToast('Bienvenido, Admin');
-        navigateTo('admin-dash');
-    } else {
-        showToast('Contraseña incorrecta');
-    }
+        fetchBookings().then(() => navigateTo('admin-dash'));
+    } else showToast('Contraseña incorrecta');
 }
 
 function logoutAdmin() {
@@ -561,44 +459,78 @@ function logoutAdmin() {
     navigateTo('home');
 }
 
-function addNewProduct() {
+async function addNewProduct() {
     const name = document.getElementById('new-prod-name').value;
     const price = parseFloat(document.getElementById('new-prod-price').value);
     const featured = document.getElementById('new-prod-featured').checked;
 
     if (!name || !price || !currentProductImage) {
-        showToast('Por favor completa todos los campos (incluyendo la foto)');
+        showToast('Completa todos los campos');
         return;
     }
 
-    const newProduct = {
-        id: Date.now(),
-        name,
-        price,
-        image: currentProductImage,
-        featured
-    };
+    const { error } = await supabase.from('products').insert([{ name, price, image: currentProductImage, featured }]);
+    if (error) showToast('Error al guardar');
+    else {
+        showToast('Producto agregado');
+        fetchData();
+        // Clear form
+        document.getElementById('new-prod-name').value = '';
+        document.getElementById('new-prod-price').value = '';
+        document.getElementById('image-preview').style.backgroundImage = 'none';
+        currentProductImage = '';
+    }
+}
 
-    state.products.push(newProduct);
-    localStorage.setItem('barber_products', JSON.stringify(state.products));
-    
-    showToast('Producto agregado con éxito');
-    
-    // Refresh relevant views
-    if (state.view === 'home') renderHome();
-    if (state.view === 'tienda') renderStore();
-    if (state.view === 'admin-dash') renderAdminDashboard();
-    
-    // Clear form
-    document.getElementById('new-prod-name').value = '';
-    document.getElementById('new-prod-price').value = '';
-    document.getElementById('new-prod-file').value = '';
-    document.getElementById('new-prod-featured').checked = false;
-    
-    const preview = document.getElementById('image-preview');
-    preview.style.backgroundImage = 'none';
-    preview.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><p>Haz clic para subir o arrastra una imagen</p>';
-    currentProductImage = '';
+async function updateProduct(id) {
+    const name = document.querySelector(`.edit-prod-name[data-id="${id}"]`).value;
+    const price = parseFloat(document.querySelector(`.edit-prod-price[data-id="${id}"]`).value);
+    await supabase.from('products').update({ name, price }).eq('id', id);
+    showToast('Producto actualizado');
+    fetchData();
+}
+
+async function deleteProduct(id) {
+    if (confirm('¿Eliminar producto?')) {
+        await supabase.from('products').delete().eq('id', id);
+        showToast('Producto eliminado');
+        fetchData();
+    }
+}
+
+async function updateBookingStatus(id, newStatus) {
+    await supabase.from('bookings').update({ status: newStatus }).eq('id', id);
+    showToast(`Cita ${newStatus.toLowerCase()}`);
+    fetchBookings().then(() => renderAdminDashboard());
+}
+
+async function confirmAndNotify(id) {
+    const booking = state.allBookings.find(b => b.id === id);
+    if (booking) {
+        await supabase.from('bookings').update({ status: 'Confirmada' }).eq('id', id);
+        const service = state.services.find(s => s.id == booking.service_id);
+        const message = `✅ *¡Cita Confirmada!*\n\nHola ${booking.name}, tu pago ha sido verificado. Te esperamos:\n\n✂️ *Servicio:* ${service.name}\n📅 *Fecha:* ${booking.date}\n⏰ *Hora:* ${booking.time}\n📍 *Ubicación:* BarberLA\n\n¡Gracias por tu confianza!`;
+        window.open(`https://wa.me/${booking.phone}?text=${encodeURIComponent(message)}`, '_blank');
+        fetchBookings().then(() => renderAdminDashboard());
+    }
+}
+
+async function deleteBooking(id) {
+    if (confirm('¿Eliminar cita?')) {
+        await supabase.from('bookings').delete().eq('id', id);
+        fetchBookings().then(() => renderAdminDashboard());
+    }
+}
+
+function viewProof(base64) {
+    const modal = document.getElementById('image-viewer');
+    const fullImg = document.getElementById('full-image');
+    modal.style.display = "block";
+    fullImg.src = base64;
+}
+
+function closeImageViewer() {
+    document.getElementById('image-viewer').style.display = "none";
 }
 
 // --- Booking Actions ---
@@ -607,65 +539,47 @@ function selectServiceForBooking(serviceId) {
     document.getElementById('booking-service').value = serviceId;
 }
 
-function confirmBooking() {
+async function confirmBooking() {
     const serviceId = document.getElementById('booking-service').value;
     const date = document.getElementById('booking-date').value;
     const time = document.getElementById('booking-time').value;
     const name = document.getElementById('booking-name').value;
     const phone = document.getElementById('booking-phone').value;
 
-    if (!serviceId || !date || !time || !name || !phone) {
-        showToast('Por favor completa todos los campos');
+    if (!serviceId || !date || !time || !name || !phone || !currentBookingProof) {
+        showToast('Completa todos los campos y sube tu comprobante');
         return;
     }
 
-    if (!currentBookingProof) {
-        showToast('Por favor sube tu comprobante de pago');
+    const { data: duplicates } = await supabase.from('bookings')
+        .select('id').eq('date', date).eq('time', time).neq('status', 'Cancelada');
+
+    if (duplicates && duplicates.length > 0) {
+        showToast('Horario ya reservado');
         return;
     }
 
-    // Duplicate prevention: check if date and time are already booked
-    const isDuplicate = state.allBookings.some(b => b.date === date && b.time === time && b.status !== 'Cancelada');
-    if (isDuplicate) {
-        showToast('Lo sentimos, este horario ya está reservado. Por favor elige otro.');
-        return;
-    }
+    const { error } = await supabase.from('bookings').insert([{
+        service_id: serviceId, date, time, name, phone, proof: currentBookingProof, status: 'Pendiente'
+    }]);
 
-    state.booking = { serviceId, date, time, name, phone, proof: currentBookingProof };
-    localStorage.setItem('barber_booking', JSON.stringify(state.booking));
-    
-    // Add to allBookings list (as a record of scheduled appointments)
-    const newBooking = { ...state.booking, id: Date.now(), status: 'Pendiente' };
-    state.allBookings.push(newBooking);
-    localStorage.setItem('barber_all_bookings', JSON.stringify(state.allBookings));
-    
-    // Reset booking proof for next use
-    currentBookingProof = '';
-    const proofPreview = document.getElementById('booking-proof-preview');
-    if (proofPreview) {
-        proofPreview.style.backgroundImage = 'none';
-        proofPreview.innerHTML = '<i class="fas fa-receipt"></i><p>Haz clic para subir comprobante</p>';
+    if (error) showToast('Error al agendar');
+    else {
+        state.booking = { serviceId, date, time, name, phone };
+        currentBookingProof = '';
+        navigateTo('checkout');
     }
-
-    navigateTo('checkout');
 }
 
-// --- WhatsApp Integration ---
+// --- WhatsApp Store Integration ---
 function sendToWhatsApp() {
-    if (!state.booking && state.cart.length === 0) {
-        showToast('Tu pedido está vacío');
-        return;
-    }
-
+    if (!state.booking && state.cart.length === 0) return;
     let total = 0;
     let message = `Hola, quiero agendar una cita y hacer un pedido:\n\n`;
 
     if (state.booking) {
         const service = state.services.find(s => s.id == state.booking.serviceId);
-        message += `👤 *Nombre:* ${state.booking.name}\n`;
-        message += `✂️ *Servicio:* ${service.name}\n`;
-        message += `📅 *Fecha:* ${state.booking.date}\n`;
-        message += `⏰ *Hora:* ${state.booking.time}\n\n`;
+        message += `👤 *Nombre:* ${state.booking.name}\n✂️ *Servicio:* ${service.name}\n📅 *Fecha:* ${state.booking.date}\n⏰ *Hora:* ${state.booking.time}\n\n`;
         total += service.price;
     }
 
@@ -677,12 +591,8 @@ function sendToWhatsApp() {
         });
         message += `\n`;
     }
-
     message += `💰 *Total:* $${total}`;
-
-    const encodedMessage = encodeURIComponent(message);
-    const phone = "5611451113"; 
-    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+    window.open(`https://wa.me/5611451113?text=${encodeURIComponent(message)}`, '_blank');
 }
 
 // --- UI Helpers ---
@@ -695,21 +605,22 @@ function showToast(text) {
 
 // --- Initialization ---
 window.addEventListener('load', () => {
-    // Populate service select
-    const serviceSelect = document.getElementById('booking-service');
-    serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
-        state.services.map(s => `<option value="${s.id}">${s.name} - $${s.price}</option>`).join('');
-
-    // Set min date to today
+    fetchData();
+    setupRealtime();
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('booking-date').setAttribute('min', today);
 
-    // Initial render
-    renderView();
+    // Populate service select (initial)
+    const serviceSelect = document.getElementById('booking-service');
+    serviceSelect.innerHTML = '<option value="">Cargando servicios...</option>';
+    
+    setTimeout(() => {
+        serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
+            state.services.map(s => `<option value="${s.id}">${s.name} - $${s.price}</option>`).join('');
+    }, 2000);
 
-    // Hide loader
     setTimeout(() => {
         document.getElementById('loader').style.opacity = '0';
-        setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
-    }, 1000);
+        setTimeout(() => document.getElementById('loader').style.display = 'none', 800);
+    }, 1500);
 });
