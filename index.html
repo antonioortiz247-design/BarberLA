@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Barber | Barbería & Shop</title>
+  <meta name="description" content="Barbería de lujo. Agenda tu cita y compra productos premium.">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Loader -->
+  <div id="loader">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">Mensaje aquí</div>
+
+  <!-- Floating Cart Button -->
+  <div id="floating-cart" class="floating-cart" onclick="navigateTo('carrito')">
+    <i class="fas fa-shopping-cart"></i>
+    <span id="cart-count-float" class="badge">0</span>
+  </div>
+
+  <div class="container">
+    <header>
+      <div class="logo">
+        <img src="lalogo.png" alt="BarberLA" style="height: 60px; width: auto; object-fit: contain">
+      </div>
+    </header>
+
+    <!-- Main Views -->
+    <main>
+      <!-- Home View -->
+      <section id="home" class="view active">
+        <div class="hero">
+          <h1>Estilo <br> <span style="color: var(--gold)">Premium</span></h1>
+          <p>Cortes de autor y productos exclusivos para el caballero moderno.</p>
+          <button class="btn btn-primary" onclick="navigateTo('agenda')">Agendar Cita</button>
+        </div>
+
+        <h3 style="margin-bottom: 1rem">Servicios Destacados</h3>
+        <div id="featured-services"></div>
+
+        <h3 style="margin: 2rem 0 1rem">Productos Top</h3>
+        <div id="featured-products" class="products-grid"></div>
+      </section>
+
+      <!-- Services View -->
+      <section id="servicios" class="view">
+        <h2 style="margin-bottom: 1.5rem">Nuestros Servicios</h2>
+        <div id="services-list"></div>
+      </section>
+
+      <!-- Booking View -->
+      <section id="agenda" class="view">
+        <h2 style="margin-bottom: 1rem">Reserva tu Cita</h2>
+        <div class="card">
+          <div class="form-group">
+            <label>Selecciona Servicio</label>
+            <select id="booking-service"></select>
+          </div>
+          <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="booking-date">
+          </div>
+          <div class="form-group">
+            <label>Hora</label>
+            <select id="booking-time">
+              <option value="">Selecciona una hora</option>
+              <option>10:00 AM</option>
+              <option>11:00 AM</option>
+              <option>12:00 PM</option>
+              <option>01:00 PM</option>
+              <option>04:00 PM</option>
+              <option>05:00 PM</option>
+              <option>06:00 PM</option>
+              <option>07:00 PM</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tu Nombre</label>
+            <input type="text" id="booking-name" placeholder="Ej. Juan Pérez">
+          </div>
+          <div class="form-group">
+            <label>WhatsApp</label>
+            <input type="tel" id="booking-phone" placeholder="Ej. 5512345678">
+          </div>
+          <div class="form-group">
+            <label>Comprobante de Pago/Transferencia</label>
+            <div class="file-upload-container" style="height: 120px">
+              <input type="file" id="booking-proof" accept="image/*" onchange="previewBookingProof(event)">
+              <div id="booking-proof-preview" class="image-preview">
+                <i class="fas fa-receipt"></i>
+                <p>Haz clic para subir comprobante</p>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="confirmBooking()">Continuar al Checkout</button>
+        </div>
+      </section>
+
+      <!-- Store View -->
+      <section id="tienda" class="view">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem">
+          <h2>Tienda Online</h2>
+          <button class="btn btn-outline" style="width: auto; padding: 0.5rem 1rem" onclick="navigateTo('carrito')">
+            <i class="fas fa-shopping-cart"></i> Ver Carrito
+          </button>
+        </div>
+        <div id="store-list" class="products-grid"></div>
+      </section>
+
+      <!-- Cart View -->
+      <section id="carrito" class="view">
+        <h2 style="margin-bottom: 1.5rem">Tu Carrito</h2>
+        <div id="cart-details" class="card">
+          <!-- Cart items with controls will be injected here -->
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem">
+          <button class="btn btn-outline" onclick="navigateTo('tienda')">Seguir Comprando</button>
+          <button id="checkout-btn" class="btn btn-primary" onclick="navigateTo('checkout')">Ir al Checkout</button>
+        </div>
+      </section>
+
+      <!-- Checkout View -->
+      <section id="checkout" class="view">
+        <h2 style="margin-bottom: 1.5rem">Resumen de Pedido</h2>
+        <div id="checkout-summary" class="card">
+          <!-- Summary items will be injected here -->
+        </div>
+        <button class="btn btn-whatsapp" onclick="sendToWhatsApp()" style="margin-top: 1rem">
+          <i class="fab fa-whatsapp" style="margin-right: 0.5rem"></i> Enviar por WhatsApp
+        </button>
+      </section>
+
+      <!-- Admin Login View -->
+      <section id="admin-login" class="view">
+        <h2 style="margin-bottom: 1.5rem">Acceso Admin</h2>
+        <div class="card">
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" id="admin-pass" placeholder="Ingresa la clave">
+          </div>
+          <button class="btn btn-primary" onclick="checkAdmin()">Entrar</button>
+        </div>
+      </section>
+
+      <!-- Admin Dashboard View -->
+        <section id="admin-dash" class="view">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem">
+            <h2>Panel Admin</h2>
+            <button class="btn btn-outline" style="width: auto; padding: 0.4rem 0.8rem" onclick="logoutAdmin()">Salir</button>
+          </div>
+          
+          <div class="card">
+            <h3 style="margin-bottom: 1rem">Citas Agendadas</h3>
+            <div id="admin-bookings-list">
+              <!-- Scheduled appointments will be injected here -->
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom: 1rem">Precios de Servicios</h3>
+            <div id="admin-services-list">
+              <!-- Service price editors will be injected here -->
+            </div>
+            <button class="btn btn-primary" onclick="saveServicePrices()" style="margin-top: 1rem">Guardar Precios</button>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom: 1rem">Gestionar Productos</h3>
+            <div id="admin-products-list" class="admin-products-grid">
+              <!-- Existing products will be listed here for editing -->
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin-bottom: 1rem">Agregar Nuevo Producto</h3>
+          <div class="form-group">
+            <label>Nombre del Producto</label>
+            <input type="text" id="new-prod-name" placeholder="Ej. Cera Mate">
+          </div>
+          <div class="form-group">
+            <label>Precio ($)</label>
+            <input type="number" id="new-prod-price" placeholder="Ej. 250">
+          </div>
+          <div class="form-group">
+            <label>Imagen del Producto</label>
+            <div class="file-upload-container">
+              <input type="file" id="new-prod-file" accept="image/*" onchange="previewImage(event)">
+              <div id="image-preview" class="image-preview">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Haz clic para subir o arrastra una imagen</p>
+              </div>
+            </div>
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem">
+            <input type="checkbox" id="new-prod-featured" style="width: auto">
+            <label style="margin: 0">¿Producto Destacado?</label>
+          </div>
+          <button class="btn btn-primary" onclick="addNewProduct()">Guardar Producto</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="nav-bottom">
+      <a href="#" class="nav-item active" onclick="navigateTo('home', event)">
+        <i class="fas fa-home"></i>
+        <span>Inicio</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigateTo('servicios', event)">
+        <i class="fas fa-cut"></i>
+        <span>Servicios</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigateTo('agenda', event)">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Citas</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigateTo('tienda', event)">
+        <i class="fas fa-shopping-bag"></i>
+        <div style="position: relative">
+          <span id="cart-count" class="badge" style="display: none">0</span>
+        </div>
+        <span>Tienda</span>
+      </a>
+      <a href="#" class="nav-item" onclick="navigateTo('admin-login', event)" id="admin-nav-item">
+        <i class="fas fa-user-shield"></i>
+        <span>Admin</span>
+      </a>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+
+  <!-- Image Viewer Modal -->
+  <div id="image-viewer" class="modal" onclick="closeImageViewer()">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="full-image">
+  </div>
+</body>
+</html>
