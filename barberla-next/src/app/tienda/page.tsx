@@ -43,14 +43,14 @@ export default function TiendaPage() {
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <main className="min-h-screen pb-24 bg-[#050505]">
+    <main className="min-h-screen pb-28 bg-[#060606]">
       <Header />
-      <div className="max-w-[500px] mx-auto px-6">
-        <h2 className="text-3xl font-extrabold text-white mb-8 tracking-tight">Nuestra <span className="text-[#c5a059]">Tienda</span></h2>
+      <div className="premium-shell">
+        <h2 className="premium-title text-white mb-8">Nuestra <span className="text-[#c8a96a]">Tienda</span></h2>
         
         <div className="grid grid-cols-2 gap-5">
           {products.map((product) => (
-            <div key={product.id} className="bg-[#0f0f0f] border border-[#222] rounded-3xl overflow-hidden group hover:border-[#c5a059]/30 transition-all duration-500">
+            <div key={product.id} className="bg-[#101010] border border-[#272727] rounded-3xl overflow-hidden group hover:border-[#c8a96a]/30 transition-all duration-500">
               <div className="relative aspect-square overflow-hidden">
                 <Image 
                   src={product.image} 
@@ -62,10 +62,10 @@ export default function TiendaPage() {
               <div className="p-5">
                 <h4 className="text-white text-sm font-bold mb-3 line-clamp-1">{product.name}</h4>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#c5a059] font-extrabold text-lg tracking-tight">${product.price}</span>
+                  <span className="text-[#c8a96a] font-extrabold text-lg tracking-tight">${product.price}</span>
                   <button 
                     onClick={() => addToCart(product)}
-                    className="bg-[#1a1a1a] text-[#c5a059] p-2.5 rounded-xl border border-[#c5a059]/20 hover:bg-[#c5a059] hover:text-black transition-all duration-300"
+                    className="bg-[#1a1a1a] text-[#c8a96a] p-2.5 rounded-xl border border-[#c8a96a]/20 hover:bg-[#c8a96a] hover:text-black transition-all duration-300"
                   >
                     <Plus size={18} strokeWidth={2.5} />
                   </button>

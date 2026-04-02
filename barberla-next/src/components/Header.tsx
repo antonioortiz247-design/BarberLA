@@ -2,8 +2,9 @@ import Image from "next/image";
 
 export default function Header() {
   return (
-    <header className="py-6 px-4 flex justify-center items-center max-w-[500px] mx-auto sticky top-0 bg-[#050505]/80 backdrop-blur-md z-40">
-      <div className="relative h-[60px] w-full max-w-[180px]">
+    <header className="sticky top-0 z-40 bg-[#060606]/78 backdrop-blur-xl border-b border-white/5">
+      <div className="premium-shell py-5 flex justify-center items-center">
+      <div className="relative h-[54px] w-full max-w-[178px] opacity-95 transition-opacity duration-300 hover:opacity-100">
         <Image
           src="/lalogo.png"
           alt="BarberLA"
@@ -11,6 +12,7 @@ export default function Header() {
           className="object-contain"
           priority
         />
+      </div>
       </div>
     </header>
   );
