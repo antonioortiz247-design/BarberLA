@@ -1,8 +1,8 @@
 // --- Supabase Configuration ---
-// SUPABASE_URL y SUPABASE_KEY ahora se definen globalmente en index.html para evitar colisiones
-// si se re-inyecta el script.
+// SUPABASE_URL y SUPABASE_KEY se definen globalmente en index.html
 
 let supabase;
+let supabaseInitialized = false;
 
 // --- Initial Data Fallbacks ---
 const initialServices = [
@@ -52,27 +52,35 @@ function hideLoader() {
 }
 
 function initSupabase() {
+    if (supabaseInitialized) return true;
+    
     try {
         const client = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
-        if (client && typeof client.createClient === 'function') {
-            supabase = client.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const url = window.SUPABASE_URL;
+        const key = window.SUPABASE_KEY;
+
+        if (client && typeof client.createClient === 'function' && url && key) {
+            supabase = client.createClient(url, key);
+            supabaseInitialized = true;
             console.log('Supabase client initialized successfully');
             
-            if (state.view === 'home' && state.services === initialServices) {
+            // Sync data if we're on the main view
+            if (state.view === 'home') {
                 fetchData().then(() => {
                     setupRealtime();
                     console.log('Post-init data sync complete');
-                });
+                }).catch(e => console.warn('Post-init fetch failed:', e));
             }
             return true;
         } else {
-            console.warn('Supabase SDK not fully ready, retrying...');
-            setTimeout(initSupabase, 500);
+            console.warn('Supabase SDK or keys not ready, retrying in background...');
+            setTimeout(initSupabase, 1000);
+            return false;
         }
     } catch (e) {
-        console.error('Error initializing Supabase:', e);
+        console.error('Error in initSupabase:', e);
+        return false;
     }
-    return false;
 }
 
 // --- Navigation ---
@@ -102,7 +110,6 @@ function navigateTo(viewId, event) {
         targetView.style.display = 'block';
     } else {
         console.error('View not found:', viewId);
-        // If target view not found, go home
         if (viewId !== 'home') {
             navigateTo('home');
         }
@@ -113,7 +120,7 @@ function navigateTo(viewId, event) {
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
         const onclickAttr = item.getAttribute('onclick');
-        if (onclickAttr && onclickAttr.includes(`'${viewId}'`)) {
+        if (onclickAttr && (onclickAttr.includes(`'${viewId}'`) || (viewId === 'admin-login' && onclickAttr.includes("'admin-dash'")))) {
             item.classList.add('active');
         }
     });
@@ -124,38 +131,34 @@ function navigateTo(viewId, event) {
 
 // --- Data Fetching ---
 async function fetchData() {
-    if (!supabase) {
-        console.warn('Supabase not initialized, using fallbacks');
+    if (!supabase || !supabaseInitialized) {
+        console.warn('Supabase not ready, using fallback data');
         renderView();
         return;
     }
     
     try {
-        console.log('Fetching data from Supabase...');
-        const { data: services, error: sError } = await supabase.from('services').select('*').order('id');
-        if (!sError && services && services.length > 0) {
-            state.services = services;
-            console.log('Services loaded from Supabase:', services.length);
-        } else if (sError) {
-            console.warn('Error fetching services (using fallbacks):', sError);
+        console.log('Fetching live data...');
+        const [servicesRes, productsRes] = await Promise.all([
+            supabase.from('services').select('*').order('id'),
+            supabase.from('products').select('*').order('id')
+        ]);
+
+        if (servicesRes.data && servicesRes.data.length > 0) {
+            state.services = servicesRes.data;
+            console.log('Services updated');
         }
 
-        const { data: products, error: pError } = await supabase.from('products').select('*').order('id');
-        if (!pError && products && products.length > 0) {
-            state.products = products;
-            console.log('Products loaded from Supabase:', products.length);
-        } else if (pError) {
-            console.warn('Error fetching products (using fallbacks):', pError);
+        if (productsRes.data && productsRes.data.length > 0) {
+            state.products = productsRes.data;
+            console.log('Products updated');
         }
 
-        if (state.isAdmin) {
-            console.log('User is admin, fetching bookings...');
-            await fetchBookings();
-        }
+        if (state.isAdmin) await fetchBookings();
         
         renderView();
     } catch (error) {
-        console.warn('Unexpected fetch error, using fallbacks:', error);
+        console.warn('Fetch error (continuing with current state):', error);
         renderView();
     }
 }
@@ -611,13 +614,15 @@ function checkAdmin() {
         sessionStorage.setItem('barber_admin', 'true');
         showToast('Bienvenido, Admin');
         
-        // Cargar citas y luego navegar
-        const bookingPromise = fetchBookings();
-        if (bookingPromise && typeof bookingPromise.then === 'function') {
-            bookingPromise.then(() => navigateTo('admin-dash'));
-        } else {
+        // Cargar citas (en paralelo, no bloqueante)
+        fetchBookings().finally(() => {
             navigateTo('admin-dash');
-        }
+        });
+        
+        // Timeout de seguridad para navegar aunque falle el fetch
+        setTimeout(() => {
+            if (state.view !== 'admin-dash') navigateTo('admin-dash');
+        }, 1500);
     } else {
         showToast('Contraseña incorrecta');
     }
@@ -787,7 +792,10 @@ function sendToWhatsApp() {
 
 // --- Initialization ---
 function initApp() {
-    console.log('App initialization starting...');
+    if (window.appInitialized) return;
+    window.appInitialized = true;
+    
+    console.log('App starting...');
     
     // 1. Initial UI setup
     const today = new Date().toISOString().split('T')[0];
@@ -797,25 +805,14 @@ function initApp() {
     // 2. Initial Render (with fallbacks)
     navigateTo('home');
     
-    // 3. Supabase setup
-    console.log('Initializing Supabase connection...');
-    if (initSupabase()) {
-        fetchData().then(() => {
-            setupRealtime();
-            console.log('Initial data sync complete');
-        }).catch(err => {
-            console.error('Initial fetch failed:', err);
-        });
-    }
+    // 3. Supabase setup (in background)
+    initSupabase();
 
-    // 4. Force hide loader after a short delay
+    // 4. Force hide loader
     setTimeout(() => {
-        console.log('Hiding loader');
         hideLoader();
-    }, 800);
+    }, 500);
 }
 
-// Asegurar que si el script se carga antes que window.onload, también se inicialice
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM Content Loaded in app.js');
-});
+// Fail-safe global
+window.initApp = initApp;

@@ -239,38 +239,49 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Configuración GLOBAL para asegurar que Supabase esté disponible
-    const SUPABASE_URL = 'https://krkazlphcjgkvcazbdlj.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_RD5mFKEHZkBp8KNv5B1Eng_3C3_Xi7k';
+    // Configuración GLOBAL
+    window.SUPABASE_URL = 'https://krkazlphcjgkvcazbdlj.supabase.co';
+    window.SUPABASE_KEY = 'sb_publishable_RD5mFKEHZkBp8KNv5B1Eng_3C3_Xi7k';
     
-    window.onload = function() {
-      console.log("Window loaded, checking Supabase SDK...");
-      if (typeof supabase === 'undefined') {
-        console.error("Supabase SDK NOT found via CDN. Retrying injection...");
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/@supabase/supabase-js@2';
-        script.onload = () => {
-          console.log("Supabase SDK injected successfully via unpkg");
-          if (typeof initApp === 'function') initApp();
-        };
-        document.head.appendChild(script);
+    // Función de inicio de emergencia
+    function startAppNow() {
+      if (window.appStarted) return;
+      window.appStarted = true;
+      console.log("Starting app sequence...");
+      if (typeof initApp === 'function') {
+        initApp();
       } else {
-        console.log("Supabase SDK found.");
-        if (typeof initApp === 'function') initApp();
+        console.warn("initApp not found yet, waiting for app.js...");
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts++;
+          if (typeof initApp === 'function') {
+            clearInterval(interval);
+            initApp();
+          } else if (attempts > 20) {
+            clearInterval(interval);
+            console.error("Critical error: app.js failed to load.");
+            document.getElementById('loader').style.display = 'none';
+          }
+        }, 100);
       }
-    };
-  </script>
-  <script src="app.js"></script>
-  
-  <script>
-    // Seguridad: Forzar ocultar loader si algo falla
+    }
+
+    // Intentar iniciar lo antes posible
+    document.addEventListener('DOMContentLoaded', startAppNow);
+    window.onload = startAppNow;
+    
+    // Fail-safe absoluto: 2 segundos y el loader se va sí o sí
     setTimeout(() => {
       const loader = document.getElementById('loader');
       if (loader && loader.style.display !== 'none') {
+        console.log("Fail-safe: hiding loader.");
         loader.style.opacity = '0';
         setTimeout(() => { loader.style.display = 'none'; }, 500);
+        if (!window.appStarted) startAppNow();
       }
-    }, 3000);
+    }, 2000);
   </script>
+  <script src="app.js"></script>
 </body>
 </html>
