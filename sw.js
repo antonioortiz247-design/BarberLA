@@ -1,5 +1,12 @@
 const CACHE_NAME = 'barber-pwa-v2';
-const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.json'];
+const ASSETS = [
+  './', 
+  './index.html', 
+  './styles.css', 
+  './app.js', 
+  './manifest.json',
+  './lalogo.png'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
