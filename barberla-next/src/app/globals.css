@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #050505;
+  --card-bg: #0f0f0f;
+  --gold: #c5a059;
+  --gold-dark: #a68541;
+  --text: #e0e0e0;
+  --text-muted: #888;
+  --border: #222;
+  --success: #2ecc71;
+  --danger: #e74c3c;
+  --font-main: 'Outfit', sans-serif;
+  --font-accent: 'Outfit', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-main);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+  font-weight: 300;
+}
+
+@theme {
+  --color-gold: #c5a059;
+  --color-gold-dark: #a68541;
+  --color-bg: #050505;
+  --color-card-bg: #0f0f0f;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #000;
+  border: none;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(197, 160, 89, 0.2);
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.section-title h3 {
+  font-size: 1.2rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.product-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.product-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.product-info {
+  padding: 1rem;
+}
+
+.product-info h4 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
