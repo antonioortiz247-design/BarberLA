@@ -1,6 +1,6 @@
 // --- Supabase Configuration ---
 const SUPABASE_URL = 'https://krkazlphcjgkvcazbdlj.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtya2F6bHBoY2pna3ZjYXpiZGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMDU4NjgsImV4cCI6MjA5MDY4MTg2OH0.aaFH8ngWsCgyogfmZT1SvNr5OcuoquDV0lQywlwz-AQ';
+const SUPABASE_KEY = 'sb_publishable_RD5mFKEHZkBp8KNv5B1Eng_3C3_Xi7k';
 
 let supabase;
 
@@ -35,7 +35,7 @@ function initSupabase() {
     try {
         if (window.supabase) {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log('Supabase client initialized');
+            console.log('Supabase client initialized with new key');
             return true;
         }
     } catch (e) {
