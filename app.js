@@ -816,3 +816,27 @@ function initApp() {
 
 // Fail-safe global
 window.initApp = initApp;
+window.navigateTo = navigateTo;
+window.selectServiceForBooking = selectServiceForBooking;
+window.confirmBooking = confirmBooking;
+window.sendToWhatsApp = sendToWhatsApp;
+window.checkAdmin = checkAdmin;
+window.logoutAdmin = logoutAdmin;
+window.previewImage = previewImage;
+window.previewBookingProof = previewBookingProof;
+window.addNewProduct = addNewProduct;
+window.updateProduct = updateProduct;
+window.deleteProduct = deleteProduct;
+window.saveServicePrices = saveServicePrices;
+window.confirmAndNotify = confirmAndNotify;
+window.updateBookingStatus = updateBookingStatus;
+window.deleteBooking = deleteBooking;
+window.viewProof = viewProof;
+window.closeImageViewer = closeImageViewer;
+
+// Extra fail-safe: start app even if inline boot script does not run.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp, { once: true });
+} else {
+    initApp();
+}

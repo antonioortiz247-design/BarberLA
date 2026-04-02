@@ -6,6 +6,7 @@ import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
 import FloatingCart from "@/components/FloatingCart";
 import { supabase } from "@/lib/supabase";
+import { defaultProducts, defaultServices } from "@/lib/defaultData";
 import { Service, Product, CartItem } from "@/types";
 import { ShoppingCart, Clock, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
@@ -30,10 +31,12 @@ export default function Home() {
           supabase.from("products").select("*").order("id")
         ]);
 
-        if (servicesRes.data) setServices(servicesRes.data);
-        if (productsRes.data) setProducts(productsRes.data);
+        setServices(servicesRes.data && servicesRes.data.length > 0 ? servicesRes.data : defaultServices);
+        setProducts(productsRes.data && productsRes.data.length > 0 ? productsRes.data : defaultProducts);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setServices(defaultServices);
+        setProducts(defaultProducts);
       } finally {
         setLoading(false);
       }
@@ -61,17 +64,17 @@ export default function Home() {
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <main className="min-h-screen pb-24 bg-[#050505]">
+    <main className="min-h-screen pb-28 bg-[#060606]">
       <Header />
       
-      <div className="max-w-[500px] mx-auto px-6">
+      <div className="premium-shell">
         <Hero />
 
         {/* Featured Services */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-white">Servicios Destacados</h3>
-            <Link href="/servicios" className="text-[#c5a059] text-sm font-medium flex items-center">
+            <h3 className="text-xl font-semibold text-white tracking-tight">Servicios Destacados</h3>
+            <Link href="/servicios" className="text-[#c8a96a] text-sm font-medium flex items-center hover:text-[#f3d08b] transition-colors">
               Ver todos <ChevronRight size={16} />
             </Link>
           </div>
@@ -81,15 +84,15 @@ export default function Home() {
               <Link 
                 key={service.id}
                 href={`/agenda?service=${service.id}`}
-                className="flex justify-between items-center p-5 bg-[#0f0f0f] border border-[#222] rounded-2xl hover:border-[#c5a059]/50 transition-all duration-300 group"
+                className="flex justify-between items-center p-5 bg-[#101010] border border-[#272727] rounded-2xl hover:border-[#c8a96a]/50 hover:bg-[#131313] transition-all duration-300 group"
               >
                 <div className="flex flex-col gap-1">
                   <h4 className="text-white font-bold text-lg group-hover:text-[#c5a059] transition-colors">{service.name}</h4>
-                  <p className="text-[#888] text-sm flex items-center gap-1.5 font-light">
-                    <Clock size={14} className="text-[#c5a059]" /> {service.duration}
+                  <p className="text-[#a1a1a1] text-sm flex items-center gap-1.5 font-light">
+                    <Clock size={14} className="text-[#c8a96a]" /> {service.duration}
                   </p>
                 </div>
-                <div className="text-xl font-extrabold text-[#c5a059] tracking-tight">
+                <div className="text-xl font-extrabold text-[#c8a96a] tracking-tight">
                   ${service.price}
                 </div>
               </Link>
@@ -100,15 +103,15 @@ export default function Home() {
         {/* Featured Products */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-white">Productos Populares</h3>
-            <Link href="/tienda" className="text-[#c5a059] text-sm font-medium flex items-center">
+            <h3 className="text-xl font-semibold text-white tracking-tight">Productos Populares</h3>
+            <Link href="/tienda" className="text-[#c8a96a] text-sm font-medium flex items-center hover:text-[#f3d08b] transition-colors">
               Ir a tienda <ChevronRight size={16} />
             </Link>
           </div>
 
           <div className="grid grid-cols-2 gap-5">
             {products.filter(p => p.featured).map((product) => (
-              <div key={product.id} className="bg-[#0f0f0f] border border-[#222] rounded-3xl overflow-hidden group hover:border-[#c5a059]/30 transition-all duration-500">
+              <div key={product.id} className="bg-[#101010] border border-[#272727] rounded-3xl overflow-hidden group hover:border-[#c8a96a]/30 transition-all duration-500">
                 <div className="relative aspect-square overflow-hidden">
                   <Image 
                     src={product.image} 
@@ -120,10 +123,10 @@ export default function Home() {
                 <div className="p-5">
                   <h4 className="text-white text-sm font-bold mb-3 line-clamp-1">{product.name}</h4>
                   <div className="flex justify-between items-center">
-                    <span className="text-[#c5a059] font-extrabold text-lg tracking-tight">${product.price}</span>
+                    <span className="text-[#c8a96a] font-extrabold text-lg tracking-tight">${product.price}</span>
                     <button 
                       onClick={() => addToCart(product)}
-                      className="bg-[#1a1a1a] text-[#c5a059] p-2.5 rounded-xl border border-[#c5a059]/20 hover:bg-[#c5a059] hover:text-black transition-all duration-300"
+                      className="bg-[#1a1a1a] text-[#c8a96a] p-2.5 rounded-xl border border-[#c8a96a]/20 hover:bg-[#c8a96a] hover:text-black transition-all duration-300"
                     >
                       <Plus size={18} strokeWidth={2.5} />
                     </button>

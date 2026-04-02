@@ -22,7 +22,7 @@ export default function Navbar({ cartCount }: { cartCount: number }) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#0f0f0f]/95 backdrop-blur-md border-t border-[#222] py-3 px-6 flex justify-between items-center z-50 max-w-[500px] mx-auto">
+    <nav className="fixed bottom-4 left-4 right-4 max-w-[500px] mx-auto rounded-2xl bg-[#111111]/90 backdrop-blur-2xl border border-white/10 py-2.5 px-3 flex justify-between items-center z-50 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (
@@ -30,8 +30,8 @@ export default function Navbar({ cartCount }: { cartCount: number }) {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-col items-center gap-1 transition-all duration-300 relative",
-              isActive ? "text-[#c5a059]" : "text-[#888]"
+              "flex flex-col items-center gap-1 transition-all duration-300 relative rounded-xl py-1.5 px-2 min-w-14",
+              isActive ? "text-[#c8a96a] bg-white/5" : "text-[#8c8c8c] hover:text-white/90"
             )}
           >
             <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
