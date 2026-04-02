@@ -1,6 +1,6 @@
 // --- Supabase Configuration ---
-const SUPABASE_URL = 'https://krkazlphcjgkvcazbdlj.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_RD5mFKEHZkBp8KNv5B1Eng_3C3_Xi7k';
+// SUPABASE_URL y SUPABASE_KEY ahora se definen globalmente en index.html para evitar colisiones
+// si se re-inyecta el script.
 
 let supabase;
 
@@ -53,11 +53,11 @@ function hideLoader() {
 
 function initSupabase() {
     try {
-        if (window.supabase) {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log('Supabase client initialized');
+        const client = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+        if (client && typeof client.createClient === 'function') {
+            supabase = client.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('Supabase client initialized successfully');
             
-            // Si ya se intentó cargar data y falló por falta de supabase, reintentar ahora
             if (state.view === 'home' && state.services === initialServices) {
                 fetchData().then(() => {
                     setupRealtime();
@@ -66,7 +66,7 @@ function initSupabase() {
             }
             return true;
         } else {
-            console.warn('Supabase SDK not loaded yet, retrying...');
+            console.warn('Supabase SDK not fully ready, retrying...');
             setTimeout(initSupabase, 500);
         }
     } catch (e) {
@@ -786,8 +786,8 @@ function sendToWhatsApp() {
 }
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('App starting...');
+function initApp() {
+    console.log('App initialization starting...');
     
     // 1. Initial UI setup
     const today = new Date().toISOString().split('T')[0];
@@ -798,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
     navigateTo('home');
     
     // 3. Supabase setup
-    console.log('Initializing Supabase...');
+    console.log('Initializing Supabase connection...');
     if (initSupabase()) {
         fetchData().then(() => {
             setupRealtime();
@@ -806,14 +806,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }).catch(err => {
             console.error('Initial fetch failed:', err);
         });
-    } else {
-        console.warn('Supabase not available, running in fallback mode');
     }
 
     // 4. Force hide loader after a short delay
-    // This ensures that even if fetching takes time, the user can see the fallback data
     setTimeout(() => {
-        console.log('Force hiding loader');
+        console.log('Hiding loader');
         hideLoader();
-    }, 1500);
+    }, 800);
+}
+
+// Asegurar que si el script se carga antes que window.onload, también se inicialice
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded in app.js');
 });

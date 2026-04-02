@@ -238,6 +238,28 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Configuración GLOBAL para asegurar que Supabase esté disponible
+    const SUPABASE_URL = 'https://krkazlphcjgkvcazbdlj.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_RD5mFKEHZkBp8KNv5B1Eng_3C3_Xi7k';
+    
+    window.onload = function() {
+      console.log("Window loaded, checking Supabase SDK...");
+      if (typeof supabase === 'undefined') {
+        console.error("Supabase SDK NOT found via CDN. Retrying injection...");
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@supabase/supabase-js@2';
+        script.onload = () => {
+          console.log("Supabase SDK injected successfully via unpkg");
+          if (typeof initApp === 'function') initApp();
+        };
+        document.head.appendChild(script);
+      } else {
+        console.log("Supabase SDK found.");
+        if (typeof initApp === 'function') initApp();
+      }
+    };
+  </script>
   <script src="app.js"></script>
   
   <script>
