@@ -1,18 +1,29 @@
 // --- Supabase Configuration ---
 const SUPABASE_URL = 'https://krkazlphcjgkvcazbdlj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtya2F6bHBoY2pna3ZjYXpiZGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMDU4NjgsImV4cCI6MjA5MDY4MTg2OH0.aaFH8ngWsCgyogfmZT1SvNr5OcuoquDV0lQywlwz-AQ';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let supabase;
 
 // --- State Management ---
 let state = {
     view: 'home',
     cart: JSON.parse(localStorage.getItem('barber_cart')) || [],
-    booking: null, // Temporary booking during checkout
-    allBookings: [], // From Supabase
-    services: [], // From Supabase
-    products: [], // From Supabase
+    booking: null,
+    allBookings: [],
+    services: [],
+    products: [],
     isAdmin: sessionStorage.getItem('barber_admin') === 'true'
 };
+
+// --- Initialization ---
+function initSupabase() {
+    if (window.supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        return true;
+    }
+    console.error('Supabase SDK not loaded');
+    return false;
+}
 
 // --- Data Fetching ---
 async function fetchData() {
@@ -604,23 +615,39 @@ function showToast(text) {
 }
 
 // --- Initialization ---
-window.addEventListener('load', () => {
-    fetchData();
-    setupRealtime();
+window.addEventListener('load', async () => {
+    if (initSupabase()) {
+        await fetchData();
+        setupRealtime();
+    } else {
+        showToast('Error cargando servicios. Reintenta en unos segundos.');
+    }
+    
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('booking-date').setAttribute('min', today);
+    const bookingDate = document.getElementById('booking-date');
+    if (bookingDate) bookingDate.setAttribute('min', today);
 
     // Populate service select (initial)
     const serviceSelect = document.getElementById('booking-service');
-    serviceSelect.innerHTML = '<option value="">Cargando servicios...</option>';
-    
-    setTimeout(() => {
-        serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
-            state.services.map(s => `<option value="${s.id}">${s.name} - $${s.price}</option>`).join('');
-    }, 2000);
+    if (serviceSelect) {
+        serviceSelect.innerHTML = '<option value="">Cargando servicios...</option>';
+        
+        // Esperar un momento a que fetchData termine
+        setTimeout(() => {
+            if (state.services && state.services.length > 0) {
+                serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
+                    state.services.map(s => `<option value="${s.id}">${s.name} - $${s.price}</option>`).join('');
+            } else {
+                serviceSelect.innerHTML = '<option value="">No se pudieron cargar los servicios</option>';
+            }
+        }, 2000);
+    }
 
     setTimeout(() => {
-        document.getElementById('loader').style.opacity = '0';
-        setTimeout(() => document.getElementById('loader').style.display = 'none', 800);
+        const loader = document.getElementById('loader');
+        if (loader) {
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 800);
+        }
     }, 1500);
 });
