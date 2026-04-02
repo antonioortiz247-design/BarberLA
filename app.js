@@ -1,13 +1,6 @@
 // --- Supabase Configuration ---
-// Intenta obtener de variables de entorno (Vercel) o usa las locales por defecto
-const SUPABASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-    ? 'https://krkazlphcjgkvcazbdlj.supabase.co' 
-    : (window.NEXT_PUBLIC_SUPABASE_URL || 'https://krkazlphcjgkvcazbdlj.supabase.co');
-
-const SUPABASE_KEY = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtya2F6bHBoY2pna3ZjYXpiZGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMDU4NjgsImV4cCI6MjA5MDY4MTg2OH0.aaFH8ngWsCgyogfmZT1SvNr5OcuoquDV0lQywlwz-AQ'
-    : (window.NEXT_PUBLIC_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtya2F6bHBoY2pna3ZjYXpiZGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMDU4NjgsImV4cCI6MjA5MDY4MTg2OH0.aaFH8ngWsCgyogfmZT1SvNr5OcuoquDV0lQywlwz-AQ');
-
+const SUPABASE_URL = 'https://krkazlphcjgkvcazbdlj.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtya2F6bHBoY2pna3ZjYXpiZGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxMDU4NjgsImV4cCI6MjA5MDY4MTg2OH0.aaFH8ngWsCgyogfmZT1SvNr5OcuoquDV0lQywlwz-AQ';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // --- State Management ---
