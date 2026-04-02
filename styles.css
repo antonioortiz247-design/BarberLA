@@ -55,13 +55,32 @@ body {
   transition: opacity 0.8s ease;
 }
 
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  animation: pulseLogo 2s ease-in-out infinite;
+}
+
+.loader-logo {
+  height: 100px;
+  width: auto;
+  object-fit: contain;
+}
+
 .spinner {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border: 2px solid rgba(197, 160, 89, 0.1);
   border-top-color: var(--gold);
   border-radius: 50%;
-  animation: spin 1.2s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulseLogo {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
 }
 
 @keyframes spin {
