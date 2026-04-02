@@ -625,8 +625,8 @@ function showToast(text) {
 }
 
 // --- Initialization ---
-window.addEventListener('load', () => {
-    console.log('Window loaded, starting initialization...');
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM fully loaded, starting initialization...');
     
     // Quitar el loader de inmediato como primera acción para evitar bloqueos visuales
     const hideLoader = () => {
