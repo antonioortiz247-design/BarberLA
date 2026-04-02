@@ -11,6 +11,7 @@ export default function Header() {
           Premium Club
         </span>
       </div>
+      </div>
     </header>
   );
 }
