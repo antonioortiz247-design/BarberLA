@@ -547,7 +547,7 @@ function checkAdmin() {
     if (!passInput) return;
     
     const pass = passInput.value;
-    if (pass === 'admin123') {
+    if (pass === 'Edgar@') {
         state.isAdmin = true;
         sessionStorage.setItem('barber_admin', 'true');
         showToast('Bienvenido, Admin');
