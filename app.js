@@ -616,38 +616,37 @@ function sendToWhatsApp() {
     window.open(`https://wa.me/5611451113?text=${encodeURIComponent(message)}`, '_blank');
 }
 
-// --- UI Helpers ---
+// --- Initialization & UI Helpers ---
 function showToast(text) {
     const toast = document.getElementById('toast');
-    toast.textContent = text;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+    if (toast) {
+        toast.textContent = text;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
 }
 
-// --- Initialization ---
+function hideLoader() {
+    console.log('Hiding loader...');
+    const loader = document.getElementById('loader');
+    if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => {
+            loader.style.display = 'none';
+        }, 500);
+    }
+    renderView();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM fully loaded, starting initialization...');
     
-    // Quitar el loader de inmediato como primera acción para evitar bloqueos visuales
-    const hideLoader = () => {
-        const loader = document.getElementById('loader');
-        if (loader) {
-            loader.style.opacity = '0';
-            setTimeout(() => {
-                loader.style.display = 'none';
-                console.log('Loader hidden');
-            }, 500);
-        }
-        renderView();
-    };
-
-    // Forzar desaparición del loader tras 1 segundo pase lo que pase
-    const forceTimeout = setTimeout(hideLoader, 1000);
+    // Forzar desaparición del loader tras 1.5 segundos pase lo que pase
+    const forceTimeout = setTimeout(hideLoader, 1500);
 
     // 1. Intentar inicializar Supabase
     try {
-        const supabaseReady = initSupabase();
-        if (supabaseReady) {
+        if (initSupabase()) {
             fetchData().then(() => {
                 setupRealtime();
                 clearTimeout(forceTimeout);
@@ -657,6 +656,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 hideLoader();
             });
         } else {
+            console.warn('Supabase not ready, using local fallback');
             hideLoader();
         }
     } catch (e) {

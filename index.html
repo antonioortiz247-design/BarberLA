@@ -242,6 +242,17 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js" defer></script>
+  
+  <script>
+    // Seguridad: Forzar ocultar loader si algo falla en app.js
+    setTimeout(() => {
+      const loader = document.getElementById('loader');
+      if (loader && loader.style.display !== 'none') {
+        loader.style.opacity = '0';
+        setTimeout(() => { loader.style.display = 'none'; }, 500);
+      }
+    }, 4000);
+  </script>
 
   <!-- Image Viewer Modal -->
   <div id="image-viewer" class="modal" onclick="closeImageViewer()">
