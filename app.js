@@ -4,14 +4,29 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 let supabase;
 
+// --- Initial Data Fallbacks ---
+const initialServices = [
+    { id: 1, name: 'Corte de Autor', price: 350, duration: '45 min', icon: 'fa-cut', featured: true },
+    { id: 2, name: 'Ritual de Barba', price: 250, duration: '30 min', icon: 'fa-broom', featured: true },
+    { id: 3, name: 'Corte + Barba', price: 500, duration: '75 min', icon: 'fa-user-tie', featured: false },
+    { id: 4, name: 'Perfilado de Ceja', price: 100, duration: '15 min', icon: 'fa-eye', featured: false }
+];
+
+const initialProducts = [
+    { id: 101, name: 'Playera Barber', price: 450, image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=400', featured: true },
+    { id: 102, name: 'Gorra Barber Premium', price: 380, image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=400', featured: true },
+    { id: 103, name: 'Pomada para Cabello', price: 220, image: 'https://images.unsplash.com/photo-1599305090598-fe179d501c27?auto=format&fit=crop&q=80&w=400', featured: false },
+    { id: 104, name: 'Aceite para Barba', price: 280, image: 'https://images.unsplash.com/photo-1626285861696-9f0bf5a49c6d?auto=format&fit=crop&q=80&w=400', featured: false }
+];
+
 // --- State Management ---
 let state = {
     view: 'home',
     cart: JSON.parse(localStorage.getItem('barber_cart')) || [],
     booking: null,
     allBookings: [],
-    services: [],
-    products: [],
+    services: initialServices,
+    products: initialProducts,
     isAdmin: sessionStorage.getItem('barber_admin') === 'true'
 };
 
@@ -27,26 +42,21 @@ function initSupabase() {
 
 // --- Data Fetching ---
 async function fetchData() {
+    if (!supabase) return;
+    
     try {
-        // Fetch Services
         const { data: services, error: sError } = await supabase.from('services').select('*').order('id');
-        if (sError) throw sError;
-        state.services = services;
+        if (!sError && services && services.length > 0) state.services = services;
 
-        // Fetch Products
         const { data: products, error: pError } = await supabase.from('products').select('*').order('id');
-        if (pError) throw pError;
-        state.products = products;
+        if (!pError && products && products.length > 0) state.products = products;
 
-        // Fetch Bookings (if admin)
-        if (state.isAdmin) {
-            await fetchBookings();
-        }
-
+        if (state.isAdmin) await fetchBookings();
+        
         renderView();
     } catch (error) {
-        console.error('Error fetching data:', error);
-        showToast('Error al conectar con la base de datos');
+        console.warn('Usando datos locales por falla en conexión');
+        renderView();
     }
 }
 
@@ -615,39 +625,36 @@ function showToast(text) {
 }
 
 // --- Initialization ---
-window.addEventListener('load', async () => {
-    if (initSupabase()) {
-        await fetchData();
-        setupRealtime();
-    } else {
-        showToast('Error cargando servicios. Reintenta en unos segundos.');
-    }
+window.addEventListener('load', () => {
+    // 1. Intentar inicializar Supabase
+    const supabaseReady = initSupabase();
     
-    const today = new Date().toISOString().split('T')[0];
-    const bookingDate = document.getElementById('booking-date');
-    if (bookingDate) bookingDate.setAttribute('min', today);
-
-    // Populate service select (initial)
-    const serviceSelect = document.getElementById('booking-service');
-    if (serviceSelect) {
-        serviceSelect.innerHTML = '<option value="">Cargando servicios...</option>';
-        
-        // Esperar un momento a que fetchData termine
-        setTimeout(() => {
-            if (state.services && state.services.length > 0) {
-                serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
-                    state.services.map(s => `<option value="${s.id}">${s.name} - $${s.price}</option>`).join('');
-            } else {
-                serviceSelect.innerHTML = '<option value="">No se pudieron cargar los servicios</option>';
-            }
-        }, 2000);
+    // 2. Cargar datos (siempre termina, con o sin éxito)
+    if (supabaseReady) {
+        fetchData().then(() => setupRealtime());
     }
 
+    // 3. Quitar el loader pase lo que pase tras 1.5s
     setTimeout(() => {
         const loader = document.getElementById('loader');
         if (loader) {
             loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 800);
+            setTimeout(() => loader.style.display = 'none', 500);
         }
+        renderView(); // Asegurar renderizado final
     }, 1500);
+
+    // Configuración de UI
+    const today = new Date().toISOString().split('T')[0];
+    const bookingDate = document.getElementById('booking-date');
+    if (bookingDate) bookingDate.setAttribute('min', today);
+
+    // Poblar select de servicios
+    const serviceSelect = document.getElementById('booking-service');
+    if (serviceSelect) {
+        setTimeout(() => {
+            serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
+                state.services.map(s => `<option value="${s.id}">${s.name} - $${s.price}</option>`).join('');
+        }, 1800);
+    }
 });
