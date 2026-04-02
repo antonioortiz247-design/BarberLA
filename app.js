@@ -626,25 +626,45 @@ function showToast(text) {
 
 // --- Initialization ---
 window.addEventListener('load', () => {
-    // 1. Intentar inicializar Supabase
-    const supabaseReady = initSupabase();
+    console.log('Window loaded, starting initialization...');
     
-    // 2. Cargar datos (siempre termina, con o sin éxito)
-    if (supabaseReady) {
-        fetchData().then(() => setupRealtime());
-    }
-
-    // 3. Quitar el loader pase lo que pase tras 1.5s
-    setTimeout(() => {
+    // Quitar el loader de inmediato como primera acción para evitar bloqueos visuales
+    const hideLoader = () => {
         const loader = document.getElementById('loader');
         if (loader) {
             loader.style.opacity = '0';
-            setTimeout(() => loader.style.display = 'none', 500);
+            setTimeout(() => {
+                loader.style.display = 'none';
+                console.log('Loader hidden');
+            }, 500);
         }
-        renderView(); // Asegurar renderizado final
-    }, 1500);
+        renderView();
+    };
 
-    // Configuración de UI
+    // Forzar desaparición del loader tras 1 segundo pase lo que pase
+    const forceTimeout = setTimeout(hideLoader, 1000);
+
+    // 1. Intentar inicializar Supabase
+    try {
+        const supabaseReady = initSupabase();
+        if (supabaseReady) {
+            fetchData().then(() => {
+                setupRealtime();
+                clearTimeout(forceTimeout);
+                hideLoader();
+            }).catch(err => {
+                console.error('Fetch error:', err);
+                hideLoader();
+            });
+        } else {
+            hideLoader();
+        }
+    } catch (e) {
+        console.error('Init error:', e);
+        hideLoader();
+    }
+
+    // Configuración de UI básica
     const today = new Date().toISOString().split('T')[0];
     const bookingDate = document.getElementById('booking-date');
     if (bookingDate) bookingDate.setAttribute('min', today);
@@ -652,9 +672,7 @@ window.addEventListener('load', () => {
     // Poblar select de servicios
     const serviceSelect = document.getElementById('booking-service');
     if (serviceSelect) {
-        setTimeout(() => {
-            serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
-                state.services.map(s => `<option value="${s.id}">${s.name} - $${s.price}</option>`).join('');
-        }, 1800);
+        serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
+            state.services.map(s => `<option value="${s.id}">${s.name} - $${s.price}</option>`).join('');
     }
 });
