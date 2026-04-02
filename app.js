@@ -32,12 +32,7 @@ let state = {
 
 // --- Initialization ---
 function initSupabase() {
-    if (window.supabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        return true;
-    }
-    console.error('Supabase SDK not loaded');
-    return false;
+    return !!supabase;
 }
 
 // --- Data Fetching ---
@@ -627,7 +622,6 @@ function showToast(text) {
 }
 
 function hideLoader() {
-    console.log('Hiding loader...');
     const loader = document.getElementById('loader');
     if (loader) {
         loader.style.opacity = '0';
@@ -638,41 +632,64 @@ function hideLoader() {
     renderView();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM fully loaded, starting initialization...');
-    
-    // Forzar desaparición del loader tras 1.5 segundos pase lo que pase
-    const forceTimeout = setTimeout(hideLoader, 1500);
+// Renderización de la vista de agenda (nueva función)
+function renderBooking() {
+    const serviceSelect = document.getElementById('booking-service');
+    if (serviceSelect) {
+        const currentSelection = serviceSelect.value;
+        serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
+            state.services.map(s => `<option value="${s.id}" ${s.id == currentSelection ? 'selected' : ''}>${s.name} - $${s.price}</option>`).join('');
+    }
+}
 
-    // 1. Intentar inicializar Supabase
+function renderView() {
     try {
-        if (initSupabase()) {
-            fetchData().then(() => {
-                setupRealtime();
-                clearTimeout(forceTimeout);
-                hideLoader();
-            }).catch(err => {
-                console.error('Fetch error:', err);
-                hideLoader();
-            });
-        } else {
-            console.warn('Supabase not ready, using local fallback');
-            hideLoader();
+        switch (state.view) {
+            case 'home': renderHome(); break;
+            case 'servicios': renderServices(); break;
+            case 'agenda': renderBooking(); break;
+            case 'tienda': renderStore(); break;
+            case 'carrito': renderCart(); break;
+            case 'checkout': renderCheckout(); break;
+            case 'admin-dash': renderAdminDashboard(); break;
+        }
+        updateCartBadge();
+    } catch (err) {
+        console.error('Error rendering view:', err);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Inicializar Supabase
+    try {
+        if (window.supabase) {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } else if (typeof supabase !== 'undefined' && supabase.createClient) {
+            // Fallback para otros métodos de carga
+            supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         }
     } catch (e) {
-        console.error('Init error:', e);
-        hideLoader();
+        console.error('Error al inicializar Supabase:', e);
     }
 
-    // Configuración de UI básica
+    // 2. Forzar ocultar loader tras un tiempo razonable
+    setTimeout(hideLoader, 1500);
+
+    // 3. Cargar datos de la base de datos
+    if (supabase) {
+        fetchData().then(() => {
+            setupRealtime();
+            renderView();
+        }).catch(err => {
+            console.error('Error en fetchData:', err);
+            renderView();
+        });
+    } else {
+        renderView();
+    }
+
+    // 4. Configuración de UI básica
     const today = new Date().toISOString().split('T')[0];
     const bookingDate = document.getElementById('booking-date');
     if (bookingDate) bookingDate.setAttribute('min', today);
-
-    // Poblar select de servicios
-    const serviceSelect = document.getElementById('booking-service');
-    if (serviceSelect) {
-        serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>' + 
-            state.services.map(s => `<option value="${s.id}">${s.name} - $${s.price}</option>`).join('');
-    }
 });
