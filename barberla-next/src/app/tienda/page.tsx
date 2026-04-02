@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import FloatingCart from "@/components/FloatingCart";
 import { supabase } from "@/lib/supabase";
+import { defaultProducts } from "@/lib/defaultData";
 import { Product, CartItem } from "@/types";
 import { Plus } from "lucide-react";
 import Image from "next/image";
@@ -18,8 +19,9 @@ export default function TiendaPage() {
     if (savedCart) setCart(JSON.parse(savedCart));
 
     const fetchProducts = async () => {
-      const { data } = await supabase.from("products").select("*").order("id");
-      if (data) setProducts(data);
+      const { data, error } = await supabase.from("products").select("*").order("id");
+      if (!error && data && data.length > 0) setProducts(data);
+      else setProducts(defaultProducts);
     };
     fetchProducts();
   }, []);

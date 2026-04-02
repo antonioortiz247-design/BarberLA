@@ -6,6 +6,7 @@ import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
 import FloatingCart from "@/components/FloatingCart";
 import { supabase } from "@/lib/supabase";
+import { defaultProducts, defaultServices } from "@/lib/defaultData";
 import { Service, Product, CartItem } from "@/types";
 import { ShoppingCart, Clock, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
@@ -30,10 +31,12 @@ export default function Home() {
           supabase.from("products").select("*").order("id")
         ]);
 
-        if (servicesRes.data) setServices(servicesRes.data);
-        if (productsRes.data) setProducts(productsRes.data);
+        setServices(servicesRes.data && servicesRes.data.length > 0 ? servicesRes.data : defaultServices);
+        setProducts(productsRes.data && productsRes.data.length > 0 ? productsRes.data : defaultProducts);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setServices(defaultServices);
+        setProducts(defaultProducts);
       } finally {
         setLoading(false);
       }

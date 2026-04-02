@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import FloatingCart from "@/components/FloatingCart";
 import { supabase } from "@/lib/supabase";
+import { defaultServices } from "@/lib/defaultData";
 import { Service, CartItem } from "@/types";
 import { Clock, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -21,8 +22,9 @@ export default function ServiciosPage() {
     }
 
     const fetchServices = async () => {
-      const { data } = await supabase.from("services").select("*").order("id");
-      if (data) setServices(data);
+      const { data, error } = await supabase.from("services").select("*").order("id");
+      if (!error && data && data.length > 0) setServices(data);
+      else setServices(defaultServices);
     };
     fetchServices();
   }, []);
