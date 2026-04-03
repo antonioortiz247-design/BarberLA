@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 import { defaultProducts, defaultServices } from "@/lib/defaultData";
 import { Booking, Product, Service } from "@/types";
-import { Calendar, CheckCircle, Eye, Loader2, LogOut, Phone, PlusCircle, Scissors, ShieldCheck, Trash2, Upload, XCircle } from "lucide-react";
+import { Calendar, CheckCircle, Eye, LogOut, Pencil, Phone, PlusCircle, Scissors, ShieldCheck, Trash2, Upload, XCircle } from "lucide-react";
 import Image from "next/image";
 
 type EditableProduct = Omit<Product, "price"> & { price: number | string };
@@ -29,9 +29,6 @@ export default function AdminPage() {
   const [selectedProof, setSelectedProof] = useState<string | null>(null);
   const [savingProducts, setSavingProducts] = useState<Record<number, boolean>>({});
   const [savingServices, setSavingServices] = useState<Record<number, boolean>>({});
-
-  const productTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
-  const serviceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   const adminSecret = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "Edgar@";
 
@@ -79,58 +76,10 @@ export default function AdminPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "services" }, refresh)
       .subscribe();
 
-    const productTimersSnapshot = productTimers.current;
-    const serviceTimersSnapshot = serviceTimers.current;
-
     return () => {
       supabase.removeChannel(channel);
-      Object.values(productTimersSnapshot).forEach(clearTimeout);
-      Object.values(serviceTimersSnapshot).forEach(clearTimeout);
     };
   }, [isAdmin]);
-
-  const scheduleProductSave = (product: EditableProduct) => {
-    if (productTimers.current[product.id]) clearTimeout(productTimers.current[product.id]);
-
-    setSavingProducts((prev) => ({ ...prev, [product.id]: true }));
-
-    productTimers.current[product.id] = setTimeout(async () => {
-      const { error } = await supabase
-        .from("products")
-        .update({
-          name: product.name,
-          price: Number(product.price),
-          image: product.image,
-          featured: product.featured,
-        })
-        .eq("id", product.id);
-
-      setSavingProducts((prev) => ({ ...prev, [product.id]: false }));
-      if (error) alert(`No se pudo guardar el producto: ${product.name}`);
-    }, 650);
-  };
-
-  const scheduleServiceSave = (service: EditableService) => {
-    if (serviceTimers.current[service.id]) clearTimeout(serviceTimers.current[service.id]);
-
-    setSavingServices((prev) => ({ ...prev, [service.id]: true }));
-
-    serviceTimers.current[service.id] = setTimeout(async () => {
-      const { error } = await supabase
-        .from("services")
-        .update({
-          name: service.name,
-          price: Number(service.price),
-          duration: service.duration,
-          icon: service.icon,
-          featured: service.featured,
-        })
-        .eq("id", service.id);
-
-      setSavingServices((prev) => ({ ...prev, [service.id]: false }));
-      if (error) alert(`No se pudo guardar el servicio: ${service.name}`);
-    }, 650);
-  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,7 +98,11 @@ export default function AdminPage() {
 
   const updateBookingStatus = async (id: number, status: Booking["status"]) => {
     const { error } = await supabase.from("bookings").update({ status }).eq("id", id);
-    if (error) alert("No se pudo actualizar el estado");
+    if (error) {
+      alert("No se pudo actualizar el estado");
+      return;
+    }
+    fetchAdminData().then(applyAdminData);
   };
 
   const confirmByWhatsapp = async (booking: Booking) => {
@@ -163,12 +116,17 @@ export default function AdminPage() {
     const phone = booking.phone.replace(/[^\d]/g, "");
     const message = `✅ ¡Tu cita en Barbería LA está confirmada!\n\nServicio: ${service?.name ?? "Servicio"}\nFecha: ${booking.date}\nHora: ${booking.time}\n\nTe esperamos.`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
+    fetchAdminData().then(applyAdminData);
   };
 
   const deleteBooking = async (id: number) => {
     if (!confirm("¿Eliminar esta cita?")) return;
     const { error } = await supabase.from("bookings").delete().eq("id", id);
-    if (error) alert("No se pudo eliminar la cita");
+    if (error) {
+      alert("No se pudo eliminar la cita");
+      return;
+    }
+    fetchAdminData().then(applyAdminData);
   };
 
   const handleAddProduct = async (e: React.FormEvent) => {
@@ -188,17 +146,40 @@ export default function AdminPage() {
     ]);
 
     if (error) {
-      alert("No se pudo agregar el producto");
+      alert(`No se pudo agregar el producto: ${error.message}`);
       return;
     }
 
     setNewProduct(emptyProduct);
+    fetchAdminData().then(applyAdminData);
+  };
+
+  const saveProduct = async (product: EditableProduct) => {
+    const { error } = await supabase
+      .from("products")
+      .update({
+        name: product.name,
+        price: Number(product.price),
+        image: product.image,
+        featured: product.featured,
+      })
+      .eq("id", product.id);
+
+    if (error) {
+      alert(`No se pudo editar el producto: ${error.message}`);
+      return;
+    }
+    fetchAdminData().then(applyAdminData);
   };
 
   const deleteProduct = async (id: number) => {
     if (!confirm("¿Eliminar este producto?")) return;
     const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) alert("No se pudo eliminar el producto");
+    if (error) {
+      alert(`No se pudo eliminar el producto: ${error.message}`);
+      return;
+    }
+    fetchAdminData().then(applyAdminData);
   };
 
   const handleAddService = async (e: React.FormEvent) => {
@@ -219,35 +200,49 @@ export default function AdminPage() {
     ]);
 
     if (error) {
-      alert("No se pudo agregar el servicio");
+      alert(`No se pudo agregar el servicio: ${error.message}`);
       return;
     }
 
     setNewService(emptyService);
+    fetchAdminData().then(applyAdminData);
+  };
+
+  const saveService = async (service: EditableService) => {
+    const { error } = await supabase
+      .from("services")
+      .update({
+        name: service.name,
+        price: Number(service.price),
+        duration: service.duration,
+        icon: service.icon,
+        featured: service.featured,
+      })
+      .eq("id", service.id);
+
+    if (error) {
+      alert(`No se pudo editar el servicio: ${error.message}`);
+      return;
+    }
+    fetchAdminData().then(applyAdminData);
   };
 
   const deleteService = async (id: number) => {
     if (!confirm("¿Eliminar este servicio?")) return;
     const { error } = await supabase.from("services").delete().eq("id", id);
-    if (error) alert("No se pudo eliminar el servicio");
+    if (error) {
+      alert(`No se pudo eliminar el servicio: ${error.message}`);
+      return;
+    }
+    fetchAdminData().then(applyAdminData);
   };
 
   const updateProductField = (id: number, field: keyof EditableProduct, value: string | number | boolean) => {
-    setProducts((prev) => {
-      const next = prev.map((item) => (item.id === id ? { ...item, [field]: value } : item));
-      const updated = next.find((item) => item.id === id);
-      if (updated) scheduleProductSave(updated);
-      return next;
-    });
+    setProducts((prev) => prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
   };
 
   const updateServiceField = (id: number, field: keyof EditableService, value: string | number | boolean) => {
-    setServices((prev) => {
-      const next = prev.map((item) => (item.id === id ? { ...item, [field]: value } : item));
-      const updated = next.find((item) => item.id === id);
-      if (updated) scheduleServiceSave(updated);
-      return next;
-    });
+    setServices((prev) => prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
   };
 
   const uploadToNewProduct = async (file: File | null) => {
@@ -376,16 +371,12 @@ export default function AdminPage() {
 
         <section className="mb-12">
           <h3 className="mb-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#c5a059]">
-            <PlusCircle size={14} /> Gestionar servicios (auto-guardado)
+            <PlusCircle size={14} /> Gestionar servicios
           </h3>
 
           <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
             {services.map((service) => (
               <div key={service.id} className="rounded-3xl border border-[#2a2a2a] bg-[#0f0f0f] p-4">
-                <div className="mb-2 flex items-center justify-between text-[10px] uppercase tracking-widest text-[#888]">
-                  <span>Servicio #{service.id}</span>
-                  {savingServices[service.id] && <span className="inline-flex items-center gap-1 text-[#c5a059]"><Loader2 size={12} className="animate-spin" /> Guardando</span>}
-                </div>
                 <div className="space-y-2">
                   <input
                     value={service.name}
@@ -414,9 +405,17 @@ export default function AdminPage() {
                     />
                     Destacado
                   </label>
-                  <button onClick={() => deleteService(service.id)} className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-red-500">
-                    <Trash2 size={14} />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => saveService(service)}
+                      className="flex-1 rounded-xl border border-[#e7cc96]/40 bg-[#c8a96a] py-2 text-[11px] font-bold uppercase tracking-widest text-black"
+                    >
+                      <span className="inline-flex items-center gap-1"><Pencil size={12} /> Guardar</span>
+                    </button>
+                    <button onClick={() => deleteService(service.id)} className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 text-red-500">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -455,7 +454,7 @@ export default function AdminPage() {
 
         <section className="mb-12">
           <h3 className="mb-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#c5a059]">
-            <PlusCircle size={14} /> Gestionar productos (auto-guardado)
+            <PlusCircle size={14} /> Gestionar productos
           </h3>
           <div className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-2">
             {products.map((product) => (
@@ -505,9 +504,17 @@ export default function AdminPage() {
                       onChange={(e) => uploadToExistingProduct(product.id, e.target.files?.[0] ?? null)}
                     />
                   </label>
-                  <button onClick={() => deleteProduct(product.id)} className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-red-500">
-                    <Trash2 size={14} />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => saveProduct(product)}
+                      className="flex-1 rounded-xl border border-[#e7cc96]/40 bg-[#c8a96a] py-2 text-[11px] font-bold uppercase tracking-widest text-black"
+                    >
+                      <span className="inline-flex items-center gap-1"><Pencil size={12} /> Guardar</span>
+                    </button>
+                    <button onClick={() => deleteProduct(product.id)} className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 text-red-500">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
