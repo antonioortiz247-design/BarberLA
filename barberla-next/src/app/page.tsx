@@ -1,151 +1,130 @@
-"use client";
+import { ArrowRight, CheckCircle2, Clock3, ShieldCheck, TrendingUp, Zap } from "lucide-react";
+import { Footer } from "@/components/landing/footer";
+import { FeatureCard } from "@/components/landing/feature-card";
+import { Navbar } from "@/components/landing/navbar";
+import { SectionTitle } from "@/components/landing/section-title";
+import { ButtonLink } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
-import { useState, useEffect } from "react";
-import Header from "@/components/Header";
-import Hero from "@/components/Hero";
-import Navbar from "@/components/Navbar";
-import FloatingCart from "@/components/FloatingCart";
-import { supabase } from "@/lib/supabase";
-import { defaultProducts, defaultServices } from "@/lib/defaultData";
-import { Service, Product, CartItem } from "@/types";
-import { Clock, ArrowRight, Plus, Sparkles } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
+const features = [
+  {
+    icon: Clock3,
+    title: "Pedido en dos pasos",
+    description: "Reduce fricción con una navegación directa y botones claros para avanzar sin dudas.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Flujo confiable",
+    description: "Estados visuales consistentes para informar disponibilidad, confirmación y seguimiento.",
+  },
+  {
+    icon: Zap,
+    title: "UI de alto contraste",
+    description: "Jerarquía visual optimizada para lectura rápida en móviles y pantallas grandes.",
+  },
+];
+
+const stats = [
+  { label: "Conversión media", value: "+34%" },
+  { label: "Tiempo por pedido", value: "-22%" },
+  { label: "Retención mensual", value: "91%" },
+  { label: "Satisfacción", value: "4.8/5" },
+];
 
 export default function Home() {
-  const [services, setServices] = useState<Service[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
-
-  useEffect(() => {
-    const savedCart = localStorage.getItem("barber_cart");
-    if (savedCart) setCart(JSON.parse(savedCart));
-
-    const fetchData = async () => {
-      try {
-        const [servicesRes, productsRes] = await Promise.all([
-          supabase.from("services").select("*").order("id"),
-          supabase.from("products").select("*").order("id"),
-        ]);
-
-        setServices(servicesRes.data && servicesRes.data.length > 0 ? servicesRes.data : defaultServices);
-        setProducts(productsRes.data && productsRes.data.length > 0 ? productsRes.data : defaultProducts);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setServices(defaultServices);
-        setProducts(defaultProducts);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const addToCart = (product: Product) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-      const newCart = existing
-        ? prev.map((item) =>
-            item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-          )
-        : [...prev, { ...product, quantity: 1 }];
-
-      localStorage.setItem("barber_cart", JSON.stringify(newCart));
-      return newCart;
-    });
-  };
-
-  const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
-
   return (
-    <main className="min-h-screen pb-28 md:pb-32">
-      <Header />
+    <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+      <Navbar />
 
-      <div className="premium-shell space-y-8 py-6 md:space-y-10 md:py-8">
-        <Hero />
-
-        <section className="bento-grid">
-          <article className="glass-panel bento-main p-5 md:p-6">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div className="max-w-2xl">
-                <p className="urban-chip mb-2">Bento Services</p>
-                <h2 className="text-2xl font-bold md:text-3xl">Servicios destacados</h2>
-              </div>
-              <Link href="/servicios" className="inline-flex items-center gap-1 text-sm font-semibold text-[#d8b06a] hover:text-[#f6ddb0]">
-                Ver todos <ArrowRight size={16} />
-              </Link>
+      <section className="relative overflow-hidden border-b border-[var(--color-border)]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(255,131,66,0.22),transparent_40%),radial-gradient(circle_at_88%_16%,rgba(255,215,101,0.18),transparent_38%)]" />
+        <div className="relative mx-auto grid w-full max-w-[1120px] gap-10 px-4 py-20 md:grid-cols-[1.08fr_0.92fr] md:px-8 md:py-28">
+          <div className="space-y-7">
+            <Badge>Experiencia inspirada en fast-casual</Badge>
+            <h1 className="text-balance text-4xl font-extrabold leading-[1.05] tracking-[-0.03em] md:text-6xl">
+              Interfaz moderna para pedidos rápidos, clara y lista para escalar.
+            </h1>
+            <p className="max-w-xl text-pretty text-lg leading-8 text-[var(--color-muted)]">
+              Creamos una landing demo con la misma energía visual: colores cálidos, contraste alto, tarjetas suaves y llamadas a la acción directas.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <ButtonLink href="#contacto" size="lg">
+                Solicitar propuesta <ArrowRight className="h-4 w-4" />
+              </ButtonLink>
+              <ButtonLink href="#features" size="lg" variant="outline">Ver componentes</ButtonLink>
             </div>
+          </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
-              {services.filter((s) => s.featured).slice(0, 4).map((service) => (
-                <Link
-                  key={service.id}
-                  href={`/agenda?service=${service.id}`}
-                  className="rounded-2xl border border-white/15 bg-black/20 p-4 transition hover:border-[#d8b06a]/45"
-                >
-                  <h3 className="line-clamp-2 text-lg font-semibold mb-2">{service.name}</h3>
-                  <p className="mb-4 inline-flex items-center gap-1.5 text-sm text-[#a7afbb]">
-                    <Clock size={14} className="text-[#d8b06a]" /> {service.duration}
-                  </p>
-                  <p className="text-xl font-extrabold text-[#d8b06a]">${service.price}</p>
-                </Link>
+          <Card className="self-center p-6 md:p-8">
+            <p className="mb-5 text-sm font-semibold uppercase tracking-[0.12em] text-[var(--color-muted)]">Resumen visual</p>
+            <ul className="space-y-4">
+              {[
+                "Paleta cálida con fondos oscuros y acentos vibrantes.",
+                "Botones redondeados con hover elevando 2px.",
+                "Tarjetas con borde translúcido y blur de fondo.",
+                "Tipografía sans con títulos densos y copy breve.",
+              ].map((item) => (
+                <li className="flex items-start gap-3 text-sm text-[var(--color-muted)]" key={item}>
+                  <CheckCircle2 aria-hidden="true" className="mt-0.5 h-4 w-4 text-[var(--color-primary)]" />
+                  <span>{item}</span>
+                </li>
               ))}
-            </div>
-          </article>
+            </ul>
+          </Card>
+        </div>
+      </section>
 
-          <article className="glass-panel bento-half p-5 md:p-6 flex flex-col justify-between">
-            <div>
-              <p className="urban-chip mb-3">Urban Signal</p>
-              <h3 className="text-xl font-bold mb-2">Imagen cuidada en cada detalle</h3>
-              <p className="premium-lead">Diseño limpio + vibra street. Reserva, compra y administra en una experiencia continua.</p>
-            </div>
-            <Sparkles className="mt-6 text-[#d8b06a]" />
-          </article>
+      <section className="px-4 py-16 md:px-8 md:py-24" id="features">
+        <div className="mx-auto w-full max-w-[1120px]">
+          <SectionTitle
+            description="Componentes reutilizables y consistentes para mantener una estética homogénea en cada módulo."
+            eyebrow="Features"
+            title="Bloques listos para construir páginas de alto impacto"
+          />
+          <div className="grid gap-5 md:grid-cols-3">
+            {features.map((feature) => (
+              <FeatureCard key={feature.title} {...feature} />
+            ))}
+          </div>
+        </div>
+      </section>
 
-          <article className="glass-panel bento-half p-5 md:p-6">
-            <p className="urban-chip mb-3">Top Products</p>
-            <h3 className="mb-4 text-xl font-bold">Tienda rápida</h3>
-            <div className="space-y-3">
-              {products.slice(0, 3).map((product) => (
-                <div key={product.id} className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/20 p-2.5">
-                  <div className="relative h-12 w-12 overflow-hidden rounded-lg">
-                    <Image src={product.image} alt={product.name} fill className="object-cover" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="line-clamp-1 text-sm font-semibold">{product.name}</p>
-                    <p className="text-sm font-bold text-[#d8b06a]">${product.price}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <Link href="/tienda" className="ghost-btn mt-4 w-full">Ver tienda completa</Link>
-          </article>
-        </section>
+      <section className="border-y border-[var(--color-border)] bg-[var(--color-surface)]/45 px-4 py-16 md:px-8" id="stats">
+        <div className="mx-auto w-full max-w-[1120px]">
+          <SectionTitle
+            description="Métricas de referencia para mostrar credibilidad y facilitar decisiones de compra."
+            eyebrow="Social proof"
+            title="Resultados que el usuario entiende de inmediato"
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat) => (
+              <Card className="p-5" key={stat.label}>
+                <p className="text-3xl font-bold text-[var(--color-text)]">{stat.value}</p>
+                <p className="mt-2 text-sm text-[var(--color-muted)]">{stat.label}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        <section className="bento-grid">
-          {products.filter((p) => p.featured).map((product) => (
-            <article key={product.id} className="glass-panel bento-half overflow-hidden">
-              <div className="relative aspect-square overflow-hidden">
-                <Image src={product.image} alt={product.name} fill className="object-cover transition duration-700 hover:scale-105" />
-              </div>
-              <div className="p-4">
-                <h3 className="mb-3 min-h-[2.8rem] line-clamp-2 text-sm font-semibold md:text-base">{product.name}</h3>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-lg font-bold text-[#d8b06a]">${product.price}</span>
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#d8b06a]/35 bg-[#1b2230] text-[#d8b06a] transition hover:bg-[#d8b06a] hover:text-black"
-                  >
-                    <Plus size={18} strokeWidth={2.4} />
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
-        </section>
-      </div>
+      <section className="px-4 py-16 md:px-8 md:py-24" id="contacto">
+        <div className="mx-auto w-full max-w-[880px] rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[linear-gradient(145deg,rgba(255,131,66,0.1),rgba(255,215,101,0.07),rgba(18,19,23,0.7))] p-8 text-center shadow-[var(--shadow-focus)] md:p-12">
+          <TrendingUp className="mx-auto mb-4 h-10 w-10 text-[var(--color-primary)]" />
+          <h2 className="text-balance text-3xl font-bold tracking-[-0.02em] md:text-4xl">¿Listo para replicar este look & feel en tu proyecto?</h2>
+          <p className="mx-auto mt-4 max-w-xl text-pretty text-[var(--color-muted)]">
+            Te entregamos un sistema visual reusable con tokens, componentes y patrones listos para producción en Next.js.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <ButtonLink href="mailto:hola@urbanbites.studio" size="lg" aria-label="Enviar correo a Urban Bites Studio">
+              Agendar llamada
+            </ButtonLink>
+            <ButtonLink href="#" size="lg" variant="ghost">Descargar guía UI</ButtonLink>
+          </div>
+        </div>
+      </section>
 
-      <FloatingCart count={cartCount} />
-      <Navbar cartCount={cartCount} />
+      <Footer />
     </main>
   );
 }
