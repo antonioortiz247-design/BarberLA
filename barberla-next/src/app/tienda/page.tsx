@@ -12,18 +12,34 @@ import Image from "next/image";
 
 export default function TiendaPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") return [];
+    const savedCart = localStorage.getItem("barber_cart");
+    return savedCart ? (JSON.parse(savedCart) as CartItem[]) : [];
+  });
 
   useEffect(() => {
-    const savedCart = localStorage.getItem("barber_cart");
-    if (savedCart) setCart(JSON.parse(savedCart));
-
-    const fetchProducts = async () => {
-      const { data, error } = await supabase.from("products").select("*").order("id");
-      if (!error && data && data.length > 0) setProducts(data);
-      else setProducts(defaultProducts);
+    const fetchProducts = () => {
+      supabase
+        .from("products")
+        .select("*")
+        .order("id")
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) setProducts(data);
+          else setProducts(defaultProducts);
+        });
     };
+
     fetchProducts();
+
+    const channel = supabase
+      .channel("products-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, fetchProducts)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const addToCart = (product: Product) => {
