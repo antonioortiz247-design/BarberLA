@@ -122,3 +122,20 @@ body {
   border-color: rgba(208, 172, 103, 0.65);
   box-shadow: 0 0 0 3px rgba(208, 172, 103, 0.12);
 }
+
+.premium-shell {
+  max-width: 500px;
+  margin: 0 auto;
+  padding-inline: 1.25rem;
+}
+
+.premium-title {
+  font-size: clamp(1.85rem, 2.9vw, 2.35rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.premium-muted {
+  color: var(--text-muted);
+}
