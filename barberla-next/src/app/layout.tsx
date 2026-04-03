@@ -8,8 +8,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Urban Bites Studio | UI Demo",
-  description: "Landing demo con estética fast-casual, componentes reutilizables y design tokens en Next.js.",
+  title: "Barbería LA | Premium Grooming",
+  description: "Barbería LA: agenda de citas, tienda y panel administrativo en tiempo real con Supabase.",
 };
 
 export const viewport: Viewport = {
