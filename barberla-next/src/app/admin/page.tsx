@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 import { defaultProducts, defaultServices } from "@/lib/defaultData";
 import { Booking, Product, Service } from "@/types";
-import { Calendar, CheckCircle, Eye, LogOut, Pencil, Phone, PlusCircle, Scissors, ShieldCheck, Trash2, Upload, XCircle } from "lucide-react";
+import { Calendar, CheckCircle, Eye, Loader2, LogOut, Pencil, Phone, PlusCircle, Scissors, ShieldCheck, Trash2, Upload, XCircle } from "lucide-react";
 import Image from "next/image";
 
 type EditableProduct = Omit<Product, "price"> & { price: number | string };
@@ -303,7 +303,7 @@ export default function AdminPage() {
 
         <section className="mb-12">
           <h3 className="mb-6 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#c5a059]">
-            <Calendar size={14} /> Citas (tiempo real)
+            <Calendar size={14} /> Citas (tiempo real) <Loader2 size={12} className="animate-spin" />
           </h3>
           <div className="space-y-6">
             {bookings.length === 0 ? (
