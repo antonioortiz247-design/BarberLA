@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import FloatingCart from "@/components/FloatingCart";
 import { supabase } from "@/lib/supabase";
+import { defaultProducts } from "@/lib/defaultData";
 import { Product, CartItem } from "@/types";
 import { Plus } from "lucide-react";
 import Image from "next/image";
@@ -18,8 +19,9 @@ export default function TiendaPage() {
     if (savedCart) setCart(JSON.parse(savedCart));
 
     const fetchProducts = async () => {
-      const { data } = await supabase.from("products").select("*").order("id");
-      if (data) setProducts(data);
+      const { data, error } = await supabase.from("products").select("*").order("id");
+      if (!error && data && data.length > 0) setProducts(data);
+      else setProducts(defaultProducts);
     };
     fetchProducts();
   }, []);
@@ -27,14 +29,12 @@ export default function TiendaPage() {
   const addToCart = (product: Product) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
-      let newCart;
-      if (existing) {
-        newCart = prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      } else {
-        newCart = [...prev, { ...product, quantity: 1 }];
-      }
+      const newCart = existing
+        ? prev.map((item) =>
+            item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          )
+        : [...prev, { ...product, quantity: 1 }];
+
       localStorage.setItem("barber_cart", JSON.stringify(newCart));
       return newCart;
     });
@@ -43,35 +43,39 @@ export default function TiendaPage() {
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <main className="min-h-screen pb-24 bg-[#050505]">
+    <main className="min-h-screen pb-28 md:pb-32">
       <Header />
-      <div className="max-w-[500px] mx-auto px-6">
-        <h2 className="text-3xl font-extrabold text-white mb-8 tracking-tight">Nuestra <span className="text-[#c5a059]">Tienda</span></h2>
-        
-        <div className="grid grid-cols-2 gap-5">
-          {products.map((product) => (
-            <div key={product.id} className="bg-[#0f0f0f] border border-[#222] rounded-3xl overflow-hidden group hover:border-[#c5a059]/30 transition-all duration-500">
+      <div className="premium-shell space-y-8 py-8">
+        <div>
+          <p className="urban-chip mb-3">Bento Store</p>
+          <h1 className="premium-title mb-3">Tienda <span className="text-[#d8b06a]">Glass Edition</span></h1>
+          <p className="premium-lead">Catálogo modular en bloques tipo bento para explorar y comprar sin fricción.</p>
+        </div>
+
+        <div className="bento-grid">
+          {products.map((product, index) => (
+            <article key={product.id} className={`glass-panel overflow-hidden ${index % 5 === 0 ? "bento-main" : "bento-half"}`}>
               <div className="relative aspect-square overflow-hidden">
-                <Image 
-                  src={product.image} 
+                <Image
+                  src={product.image}
                   alt={product.name}
                   fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-700"
+                  className="object-cover transition duration-700 hover:scale-105"
                 />
               </div>
-              <div className="p-5">
-                <h4 className="text-white text-sm font-bold mb-3 line-clamp-1">{product.name}</h4>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#c5a059] font-extrabold text-lg tracking-tight">${product.price}</span>
-                  <button 
+              <div className="p-4">
+                <h2 className="mb-3 min-h-[2.8rem] line-clamp-2 text-sm font-semibold md:text-base">{product.name}</h2>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="whitespace-nowrap text-lg font-bold text-[#d8b06a]">${product.price}</span>
+                  <button
                     onClick={() => addToCart(product)}
-                    className="bg-[#1a1a1a] text-[#c5a059] p-2.5 rounded-xl border border-[#c5a059]/20 hover:bg-[#c5a059] hover:text-black transition-all duration-300"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#d8b06a]/35 bg-[#1b2230] text-[#d8b06a] transition hover:bg-[#d8b06a] hover:text-black"
                   >
-                    <Plus size={18} strokeWidth={2.5} />
+                    <Plus size={18} strokeWidth={2.4} />
                   </button>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>
