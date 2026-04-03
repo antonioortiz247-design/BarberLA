@@ -27,8 +27,7 @@ export default function AdminPage() {
   const [newProduct, setNewProduct] = useState(emptyProduct);
   const [newService, setNewService] = useState(emptyService);
   const [selectedProof, setSelectedProof] = useState<string | null>(null);
-  const [savingProducts, setSavingProducts] = useState<Record<number, boolean>>({});
-  const [savingServices, setSavingServices] = useState<Record<number, boolean>>({});
+  const [dbConnected, setDbConnected] = useState<boolean | null>(null);
 
   const adminSecret = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? "Edgar@";
 
@@ -60,13 +59,26 @@ export default function AdminPage() {
     setProducts(data.products);
   };
 
+  const verifyConnection = async () => {
+    const { error } = await supabase.from("services").select("id", { count: "exact", head: true });
+    setDbConnected(!error);
+  };
+
   useEffect(() => {
     if (!isAdmin) return;
 
     fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
 
     const refresh = () => {
       fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
     };
 
     const channel = supabase
@@ -103,6 +115,10 @@ export default function AdminPage() {
       return;
     }
     fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
   };
 
   const confirmByWhatsapp = async (booking: Booking) => {
@@ -117,6 +133,10 @@ export default function AdminPage() {
     const message = `✅ ¡Tu cita en Barbería LA está confirmada!\n\nServicio: ${service?.name ?? "Servicio"}\nFecha: ${booking.date}\nHora: ${booking.time}\n\nTe esperamos.`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
     fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
   };
 
   const deleteBooking = async (id: number) => {
@@ -127,6 +147,10 @@ export default function AdminPage() {
       return;
     }
     fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
   };
 
   const handleAddProduct = async (e: React.FormEvent) => {
@@ -152,6 +176,10 @@ export default function AdminPage() {
 
     setNewProduct(emptyProduct);
     fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
   };
 
   const saveProduct = async (product: EditableProduct) => {
@@ -170,6 +198,10 @@ export default function AdminPage() {
       return;
     }
     fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
   };
 
   const deleteProduct = async (id: number) => {
@@ -180,6 +212,10 @@ export default function AdminPage() {
       return;
     }
     fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
   };
 
   const handleAddService = async (e: React.FormEvent) => {
@@ -206,6 +242,10 @@ export default function AdminPage() {
 
     setNewService(emptyService);
     fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
   };
 
   const saveService = async (service: EditableService) => {
@@ -225,6 +265,10 @@ export default function AdminPage() {
       return;
     }
     fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
   };
 
   const deleteService = async (id: number) => {
@@ -235,6 +279,10 @@ export default function AdminPage() {
       return;
     }
     fetchAdminData().then(applyAdminData);
+    supabase
+      .from("services")
+      .select("id", { count: "exact", head: true })
+      .then(({ error }) => setDbConnected(!error));
   };
 
   const updateProductField = (id: number, field: keyof EditableProduct, value: string | number | boolean) => {
@@ -292,13 +340,23 @@ export default function AdminPage() {
     <main className="min-h-screen bg-[#060606] pb-32">
       <Header />
       <div className="premium-shell py-6 md:py-8">
-        <div className="mb-8 flex items-center justify-between">
-          <h2 className="text-2xl font-extrabold tracking-tight text-white">
-            Panel <span className="text-[#c5a059]">LA</span>
-          </h2>
-          <button onClick={handleLogout} className="rounded-lg border border-[#222] bg-[#1a1a1a] p-2 text-[#888] transition-all hover:text-white">
-            <LogOut size={18} />
-          </button>
+        <div className="mb-8 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-extrabold tracking-tight text-white">
+              Panel <span className="text-[#c5a059]">LA</span>
+            </h2>
+            <p className={`mt-1 text-[10px] font-bold uppercase tracking-[0.14em] ${dbConnected ? "text-green-400" : dbConnected === false ? "text-red-400" : "text-[#888]"}`}>
+              {dbConnected ? "Base de datos conectada" : dbConnected === false ? "Sin conexión con Supabase" : "Verificando conexión..."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={verifyConnection} className="rounded-lg border border-[#2f2f2f] bg-[#111] px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-[#bdbdbd]">
+              Verificar DB
+            </button>
+            <button onClick={handleLogout} className="rounded-lg border border-[#222] bg-[#1a1a1a] p-2 text-[#888] transition-all hover:text-white">
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
 
         <section className="mb-12">
