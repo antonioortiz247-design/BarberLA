@@ -24,12 +24,12 @@ export default function Hero() {
         className="relative z-10 grid min-h-[68svh] items-end gap-8 p-6 md:min-h-[74svh] md:grid-cols-[1.3fr_0.7fr] md:p-10 lg:p-14"
       >
         <div>
-          <span className="urban-chip mb-4">Street Luxury Experience</span>
-          <h1 className="premium-title mb-4 max-w-[15ch]">
-            Futurismo limpio para una barbería con <span className="text-[#d8b06a]">carácter urbano</span>.
+          <span className="urban-chip mb-4">Barbería LA Experience</span>
+          <h1 className="mb-4 max-w-[16ch] text-[clamp(1.9rem,4.2vw,3.6rem)] font-extrabold leading-[1.06] tracking-[-0.03em]">
+            Tu mejor versión empieza en <span className="text-[#d8b06a]">Barbería LA</span>.
           </h1>
           <p className="premium-lead mb-8 max-w-xl">
-            Flujos rápidos, visual premium y una experiencia moderna inspirada en Tesla, Apple y la energía de la calle.
+            Cortes, barba y estilo profesional en un espacio moderno. Agenda en segundos y recibe atención puntual.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/agenda" className="cta-gold">Agendar ahora</Link>
