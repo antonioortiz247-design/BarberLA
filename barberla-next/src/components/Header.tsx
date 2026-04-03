@@ -13,10 +13,9 @@ export default function Header() {
             priority
           />
         </figure>
-        <span className="hidden rounded-full border border-[#d0ac67]/25 bg-[#101113] px-3 py-1 text-[11px] uppercase tracking-[0.15em] text-[#d0ac67] md:inline-flex">
+        <span className="hidden rounded-full border border-[#d0ac67]/25 bg-[#101113] px-3 py-1 text-xs uppercase tracking-widest text-[#d0ac67] md:inline-flex">
           Premium Club
         </span>
-      </div>
       </div>
     </header>
   );
