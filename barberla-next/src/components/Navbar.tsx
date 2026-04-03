@@ -22,7 +22,7 @@ export default function Navbar({ cartCount }: { cartCount: number }) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#0f0f0f]/95 backdrop-blur-md border-t border-[#222] py-3 px-6 flex justify-between items-center z-50 max-w-[500px] mx-auto">
+    <nav className="fixed bottom-3 left-1/2 z-50 flex w-[min(96vw,760px)] -translate-x-1/2 items-center justify-between rounded-2xl border border-white/10 bg-[#10151c]/88 px-2 py-2.5 shadow-[0_16px_45px_rgba(0,0,0,0.45)] backdrop-blur-2xl md:bottom-5 md:px-4">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (
@@ -30,16 +30,16 @@ export default function Navbar({ cartCount }: { cartCount: number }) {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-col items-center gap-1 transition-all duration-300 relative",
-              isActive ? "text-[#c5a059]" : "text-[#888]"
+              "group relative flex min-w-[58px] flex-col items-center gap-1 rounded-xl px-2 py-1.5 transition-all duration-300 md:min-w-[82px] md:px-4",
+              isActive
+                ? "bg-white/7 text-[#d7b26c]"
+                : "text-[#8f99a8] hover:bg-white/[0.035] hover:text-[#f2f4f6]"
             )}
           >
-            <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-            <span className="text-[10px] font-medium uppercase tracking-wider">
-              {item.label}
-            </span>
+            <item.icon size={18} strokeWidth={isActive ? 2.4 : 2} className="transition-transform duration-300 group-hover:scale-110" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] leading-none">{item.label}</span>
             {item.badge !== undefined && item.badge > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#c5a059] text-black text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              <span className="absolute -right-0.5 -top-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#d7b26c] px-1 text-[9px] font-black text-black">
                 {item.badge}
               </span>
             )}

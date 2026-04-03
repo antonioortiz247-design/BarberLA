@@ -5,34 +5,43 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <section className="relative h-[450px] w-full flex flex-col justify-center items-center text-center px-6 overflow-hidden rounded-3xl mb-12">
-      <div 
-        className="absolute inset-0 z-0"
+    <section className="relative mb-14 min-h-[62svh] overflow-hidden rounded-[2rem] border border-white/10 lg:min-h-[68svh]">
+      <div
+        className="absolute inset-0"
         style={{
-          backgroundImage: 'linear-gradient(to bottom, rgba(5,5,5,0.4), rgba(5,5,5,0.9)), url("https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundImage:
+            'linear-gradient(180deg, rgba(5,8,13,0.12) 0%, rgba(5,8,13,0.72) 55%, rgba(5,8,13,0.95) 100%), url("https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=1800")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       />
-      
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(215,178,108,0.26),transparent_40%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_88%,rgba(109,154,255,0.15),transparent_44%)]" />
+
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10"
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="relative z-10 flex min-h-[62svh] flex-col justify-end p-6 md:p-10 lg:min-h-[68svh] lg:p-14"
       >
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
-          Corte & Estilo <span className="text-[#c5a059] italic">Premium</span>
+        <p className="section-kicker mb-4 w-fit">Future Grooming Studio</p>
+        <h1 className="premium-title mb-4 max-w-[16ch] text-white">
+          Precisión premium para una imagen <span className="text-[#d7b26c]">sofisticada</span>.
         </h1>
-        <p className="text-[#888] text-lg mb-8 max-w-[300px] mx-auto font-light">
-          Donde la tradición se encuentra con la modernidad.
+        <p className="premium-lead mb-8 max-w-xl">
+          Experiencia inspirada en Apple, Tesla y Uber Eats: limpia, rápida y elegante en cada interacción.
         </p>
-        <Link 
-          href="/agenda" 
-          className="inline-block bg-gradient-to-br from-[#c5a059] to-[#a68541] text-black font-bold px-10 py-4 rounded-xl shadow-[0_4px_20px_rgba(197,160,89,0.3)] hover:scale-105 transition-transform duration-300 uppercase tracking-widest text-sm"
-        >
-          Agendar Cita
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/agenda" className="btn-primary w-fit">
+            Reservar cita
+          </Link>
+          <Link
+            href="/servicios"
+            className="inline-flex rounded-xl border border-white/20 bg-black/35 px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:border-[#d7b26c]/50 hover:text-[#f5ddb0]"
+          >
+            Ver servicios
+          </Link>
+        </div>
       </motion.div>
     </section>
   );

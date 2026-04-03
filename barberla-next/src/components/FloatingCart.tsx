@@ -9,17 +9,18 @@ export default function FloatingCart({ count }: { count: number }) {
     <AnimatePresence>
       {count > 0 && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.5, y: 50 }}
+          initial={{ opacity: 0, scale: 0.75, y: 26 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.5, y: 50 }}
-          className="fixed bottom-24 right-6 z-40"
+          exit={{ opacity: 0, scale: 0.75, y: 26 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="fixed bottom-24 right-4 z-40 md:bottom-28 md:right-8"
         >
           <Link
             href="/carrito"
-            className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-[#c5a059] to-[#a68541] rounded-full shadow-[0_8px_25px_rgba(197,160,89,0.4)] text-black relative"
+            className="group relative flex h-14 w-14 items-center justify-center rounded-full border border-[#f5ddb0]/45 bg-gradient-to-br from-[#f5ddb0] to-[#d7b26c] text-black shadow-[0_12px_30px_rgba(215,178,108,0.35)]"
           >
-            <ShoppingCart size={24} />
-            <span className="absolute -top-1 -right-1 bg-white text-black text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#c5a059]">
+            <ShoppingCart size={22} className="transition-transform duration-300 group-hover:scale-110" />
+            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-[#d7b26c]/70 bg-[#111722] text-[10px] font-bold text-[#f5ddb0]">
               {count}
             </span>
           </Link>
