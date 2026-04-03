@@ -22,7 +22,7 @@ export default function Navbar({ cartCount }: { cartCount: number }) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#0f0f0f]/95 backdrop-blur-md border-t border-[#222] py-3 px-6 flex justify-between items-center z-50 max-w-[500px] mx-auto">
+    <nav className="fixed bottom-3 left-1/2 z-50 flex w-[min(96vw,780px)] -translate-x-1/2 items-center justify-between rounded-2xl border border-white/10 bg-[#121722]/88 px-2 py-2 backdrop-blur-2xl md:bottom-5 md:px-4">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (
@@ -30,16 +30,16 @@ export default function Navbar({ cartCount }: { cartCount: number }) {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-col items-center gap-1 transition-all duration-300 relative",
-              isActive ? "text-[#c5a059]" : "text-[#888]"
+              "group relative flex min-w-[60px] flex-col items-center gap-1 rounded-xl px-2 py-1.5 transition md:min-w-[86px] md:px-4",
+              isActive
+                ? "bg-[#1d2430] text-[#d8b06a]"
+                : "text-[#91a0b4] hover:bg-white/[0.04] hover:text-white"
             )}
           >
-            <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-            <span className="text-[10px] font-medium uppercase tracking-wider">
-              {item.label}
-            </span>
+            <item.icon size={18} className="transition-transform duration-300 group-hover:scale-110" />
+            <span className="text-[10px] uppercase tracking-[0.12em] leading-none">{item.label}</span>
             {item.badge !== undefined && item.badge > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#c5a059] text-black text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              <span className="absolute -right-0.5 -top-1 flex min-w-4.5 h-4.5 items-center justify-center rounded-full bg-[#d8b06a] px-1 text-[9px] font-black text-black">
                 {item.badge}
               </span>
             )}
