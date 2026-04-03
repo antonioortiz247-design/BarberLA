@@ -8,13 +8,12 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "BarberLA | Premium Grooming",
-  description: "Corte & Estilo Premium. Donde la tradición se encuentra con la modernidad.",
-  manifest: "/manifest.json",
+  title: "Urban Bites Studio | UI Demo",
+  description: "Landing demo con estética fast-casual, componentes reutilizables y design tokens en Next.js.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#050505",
+  themeColor: "#0c0d11",
 };
 
 export default function RootLayout({
@@ -24,9 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${outfit.variable} antialiased`}>
-        {children}
-      </body>
+      <body className={`${outfit.variable} antialiased`}>{children}</body>
     </html>
   );
 }
