@@ -47,14 +47,14 @@ export default function TiendaPage() {
       <Header />
       <div className="premium-shell space-y-8 py-8">
         <div>
-          <p className="urban-chip mb-3">Street Storefront</p>
-          <h1 className="premium-title mb-3">Tienda <span className="text-[#d8b06a]">BarberLA</span></h1>
-          <p className="premium-lead">Diseño limpio y modular para descubrir y comprar sin fricción.</p>
+          <p className="urban-chip mb-3">Bento Store</p>
+          <h1 className="premium-title mb-3">Tienda <span className="text-[#d8b06a]">Glass Edition</span></h1>
+          <p className="premium-lead">Catálogo modular en bloques tipo bento para explorar y comprar sin fricción.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {products.map((product) => (
-            <article key={product.id} className="glass-panel overflow-hidden">
+        <div className="bento-grid">
+          {products.map((product, index) => (
+            <article key={product.id} className={`glass-panel overflow-hidden ${index % 5 === 0 ? "bento-main" : "bento-half"}`}>
               <div className="relative aspect-square overflow-hidden">
                 <Image
                   src={product.image}

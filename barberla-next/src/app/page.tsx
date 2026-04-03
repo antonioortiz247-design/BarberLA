@@ -8,7 +8,7 @@ import FloatingCart from "@/components/FloatingCart";
 import { supabase } from "@/lib/supabase";
 import { defaultProducts, defaultServices } from "@/lib/defaultData";
 import { Service, Product, CartItem } from "@/types";
-import { Clock, ArrowRight, Plus } from "lucide-react";
+import { Clock, ArrowRight, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -60,72 +60,87 @@ export default function Home() {
     <main className="min-h-screen pb-28 md:pb-32">
       <Header />
 
-      <div className="premium-shell space-y-14 py-6 md:space-y-16 md:py-8">
+      <div className="premium-shell space-y-8 py-6 md:space-y-10 md:py-8">
         <Hero />
 
-        <section className="space-y-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="urban-chip mb-3">Crafted Services</p>
-              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Rituales de corte con precisión total</h2>
-              <p className="premium-lead mt-2">Bloques visuales limpios, información clara y CTA directa.</p>
-            </div>
-            <Link href="/servicios" className="inline-flex items-center gap-1 text-sm font-semibold text-[#d8b06a] hover:text-[#f6ddb0]">
-              Ver catálogo <ArrowRight size={16} />
-            </Link>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {services.filter((s) => s.featured).map((service) => (
-              <Link key={service.id} href={`/agenda?service=${service.id}`} className="glass-panel p-5 transition hover:-translate-y-1">
-                <h3 className="text-lg font-semibold mb-2 line-clamp-2">{service.name}</h3>
-                <p className="mb-5 inline-flex items-center gap-1.5 text-sm text-[#a7afbb]">
-                  <Clock size={14} className="text-[#d8b06a]" /> {service.duration}
-                </p>
-                <p className="text-2xl font-extrabold text-[#d8b06a]">${service.price}</p>
+        <section className="bento-grid">
+          <article className="glass-panel bento-main p-5 md:p-6">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="urban-chip mb-2">Bento Services</p>
+                <h2 className="text-2xl font-bold md:text-3xl">Servicios destacados</h2>
+              </div>
+              <Link href="/servicios" className="inline-flex items-center gap-1 text-sm font-semibold text-[#d8b06a] hover:text-[#f6ddb0]">
+                Ver todos <ArrowRight size={16} />
               </Link>
-            ))}
-          </div>
-        </section>
-
-        <section className="space-y-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="urban-chip mb-3">Urban Store</p>
-              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Productos premium para tu rutina</h2>
-              <p className="premium-lead mt-2">Tarjetas compactas, textos balanceados y acciones sin solapes.</p>
             </div>
-            <Link href="/tienda" className="inline-flex items-center gap-1 text-sm font-semibold text-[#d8b06a] hover:text-[#f6ddb0]">
-              Ir a tienda <ArrowRight size={16} />
-            </Link>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {products.filter((p) => p.featured).map((product) => (
-              <article key={product.id} className="glass-panel overflow-hidden">
-                <div className="relative aspect-square overflow-hidden">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-cover transition duration-700 hover:scale-105"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="mb-3 min-h-[2.8rem] line-clamp-2 text-sm font-semibold md:text-base">{product.name}</h3>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="whitespace-nowrap text-lg font-bold text-[#d8b06a]">${product.price}</span>
-                    <button
-                      onClick={() => addToCart(product)}
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#d8b06a]/35 bg-[#1b2230] text-[#d8b06a] transition hover:bg-[#d8b06a] hover:text-black"
-                    >
-                      <Plus size={18} strokeWidth={2.4} />
-                    </button>
+            <div className="grid gap-3 md:grid-cols-2">
+              {services.filter((s) => s.featured).slice(0, 4).map((service) => (
+                <Link
+                  key={service.id}
+                  href={`/agenda?service=${service.id}`}
+                  className="rounded-2xl border border-white/15 bg-black/20 p-4 transition hover:border-[#d8b06a]/45"
+                >
+                  <h3 className="line-clamp-2 text-lg font-semibold mb-2">{service.name}</h3>
+                  <p className="mb-4 inline-flex items-center gap-1.5 text-sm text-[#a7afbb]">
+                    <Clock size={14} className="text-[#d8b06a]" /> {service.duration}
+                  </p>
+                  <p className="text-xl font-extrabold text-[#d8b06a]">${service.price}</p>
+                </Link>
+              ))}
+            </div>
+          </article>
+
+          <article className="glass-panel bento-half p-5 md:p-6 flex flex-col justify-between">
+            <div>
+              <p className="urban-chip mb-3">Urban Signal</p>
+              <h3 className="text-xl font-bold mb-2">Imagen cuidada en cada detalle</h3>
+              <p className="premium-lead">Diseño limpio + vibra street. Reserva, compra y administra en una experiencia continua.</p>
+            </div>
+            <Sparkles className="mt-6 text-[#d8b06a]" />
+          </article>
+
+          <article className="glass-panel bento-half p-5 md:p-6">
+            <p className="urban-chip mb-3">Top Products</p>
+            <h3 className="mb-4 text-xl font-bold">Tienda rápida</h3>
+            <div className="space-y-3">
+              {products.slice(0, 3).map((product) => (
+                <div key={product.id} className="flex items-center gap-3 rounded-xl border border-white/12 bg-black/20 p-2.5">
+                  <div className="relative h-12 w-12 overflow-hidden rounded-lg">
+                    <Image src={product.image} alt={product.name} fill className="object-cover" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-1 text-sm font-semibold">{product.name}</p>
+                    <p className="text-sm font-bold text-[#d8b06a]">${product.price}</p>
                   </div>
                 </div>
-              </article>
-            ))}
-          </div>
+              ))}
+            </div>
+            <Link href="/tienda" className="ghost-btn mt-4 w-full">Ver tienda completa</Link>
+          </article>
+        </section>
+
+        <section className="bento-grid">
+          {products.filter((p) => p.featured).map((product) => (
+            <article key={product.id} className="glass-panel bento-half overflow-hidden">
+              <div className="relative aspect-square overflow-hidden">
+                <Image src={product.image} alt={product.name} fill className="object-cover transition duration-700 hover:scale-105" />
+              </div>
+              <div className="p-4">
+                <h3 className="mb-3 min-h-[2.8rem] line-clamp-2 text-sm font-semibold md:text-base">{product.name}</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-lg font-bold text-[#d8b06a]">${product.price}</span>
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#d8b06a]/35 bg-[#1b2230] text-[#d8b06a] transition hover:bg-[#d8b06a] hover:text-black"
+                  >
+                    <Plus size={18} strokeWidth={2.4} />
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
         </section>
       </div>
 
