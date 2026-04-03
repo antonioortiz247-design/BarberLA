@@ -1,30 +1,32 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import Header from "@/components/Header";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
-import { Service, CartItem } from "@/types";
-import { Calendar, Clock, User, Phone, Receipt, Loader2 } from "lucide-react";
+import { CartItem, Service } from "@/types";
+import { Calendar, Clock, Loader2, Phone, Receipt, User } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+
+const TIME_SLOTS = ["10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM"];
 
 function AgendaContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialServiceId = searchParams.get("service");
+  const initialServiceId = searchParams.get("service") ?? "";
 
   const [services, setServices] = useState<Service[]>([]);
   const [cartCount, setCartCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  
+  const [busySlots, setBusySlots] = useState<string[]>([]);
   const [formData, setFormData] = useState({
-    service_id: initialServiceId || "",
+    service_id: initialServiceId,
     date: "",
     time: "",
     name: "",
     phone: "",
-    proof: ""
+    proof: "",
   });
 
   useEffect(() => {
@@ -38,143 +40,178 @@ function AgendaContent() {
       const { data } = await supabase.from("services").select("*").order("id");
       if (data) setServices(data);
     };
+
     fetchServices();
   }, []);
 
+  useEffect(() => {
+    if (!formData.date) {
+      setBusySlots([]);
+      return;
+    }
+
+    const fetchBusySlots = async () => {
+      const { data } = await supabase
+        .from("bookings")
+        .select("time")
+        .eq("date", formData.date)
+        .in("status", ["Pendiente", "Confirmada"]);
+
+      setBusySlots((data ?? []).map((item) => item.time));
+    };
+
+    fetchBusySlots();
+  }, [formData.date]);
+
+  const availableSlots = useMemo(
+    () => TIME_SLOTS.map((slot) => ({ slot, disabled: busySlots.includes(slot) })),
+    [busySlots],
+  );
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData(prev => ({ ...prev, proof: event.target?.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFormData((prev) => ({ ...prev, proof: String(event.target?.result ?? "") }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!formData.service_id || !formData.date || !formData.time || !formData.name || !formData.phone || !formData.proof) {
       alert("Por favor completa todos los campos y sube tu comprobante.");
       return;
     }
 
     setLoading(true);
+
     try {
-      // Verificar duplicados
-      const { data: duplicates } = await supabase
+      const { data: duplicates, error: duplicateError } = await supabase
         .from("bookings")
         .select("id")
         .eq("date", formData.date)
         .eq("time", formData.time)
-        .neq("status", "Cancelada");
+        .in("status", ["Pendiente", "Confirmada"])
+        .limit(1);
+
+      if (duplicateError) throw duplicateError;
 
       if (duplicates && duplicates.length > 0) {
-        alert("Este horario ya está reservado. Por favor elige otro.");
-        setLoading(false);
+        alert("Ese horario ya no está disponible. Elige otro por favor.");
         return;
       }
 
-      const { error } = await supabase.from("bookings").insert([{
-        ...formData,
-        status: "Pendiente"
-      }]);
+      const { error } = await supabase.from("bookings").insert([
+        {
+          ...formData,
+          status: "Pendiente",
+        },
+      ]);
 
       if (error) throw error;
 
-      // Guardar reserva en session para el checkout
       sessionStorage.setItem("current_booking", JSON.stringify(formData));
       router.push("/checkout");
     } catch (error) {
       console.error("Error creating booking:", error);
-      alert("Error al agendar. Por favor intenta de nuevo.");
+      alert("No se pudo agendar la cita. Intenta nuevamente.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-[500px] mx-auto px-6">
-      <h2 className="text-3xl font-extrabold text-white mb-8 tracking-tight">Agendar <span className="text-[#c5a059]">Cita</span></h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-6 bg-[#0f0f0f] p-8 rounded-3xl border border-[#222]">
+    <div className="mx-auto max-w-[520px] px-6">
+      <h2 className="mb-8 text-3xl font-extrabold tracking-tight text-white">
+        Agendar cita en <span className="text-[#c5a059]">LA</span>
+      </h2>
+
+      <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-[#222] bg-[#0f0f0f] p-8">
         <div className="space-y-2">
-          <label className="text-[#888] text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+          <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#888]">
             <Loader2 size={14} className="text-[#c5a059]" /> Servicio
           </label>
-          <select 
+          <select
             value={formData.service_id}
-            onChange={(e) => setFormData(prev => ({ ...prev, service_id: e.target.value }))}
-            className="w-full bg-[#1a1a1a] border border-[#222] rounded-xl px-5 py-4 text-white focus:border-[#c5a059] outline-none transition-all appearance-none"
+            onChange={(e) => setFormData((prev) => ({ ...prev, service_id: e.target.value }))}
+            className="w-full appearance-none rounded-xl border border-[#222] bg-[#1a1a1a] px-5 py-4 text-white outline-none transition-all focus:border-[#c5a059]"
           >
             <option value="">Selecciona un servicio</option>
-            {services.map(s => (
-              <option key={s.id} value={s.id}>{s.name} - ${s.price}</option>
+            {services.map((service) => (
+              <option key={service.id} value={service.id}>
+                {service.name} - ${service.price}
+              </option>
             ))}
           </select>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-[#888] text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+            <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#888]">
               <Calendar size={14} className="text-[#c5a059]" /> Fecha
             </label>
-            <input 
+            <input
               type="date"
               value={formData.date}
               min={new Date().toISOString().split("T")[0]}
-              onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-              className="w-full bg-[#1a1a1a] border border-[#222] rounded-xl px-5 py-4 text-white focus:border-[#c5a059] outline-none transition-all"
+              onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value, time: "" }))}
+              className="w-full rounded-xl border border-[#222] bg-[#1a1a1a] px-5 py-4 text-white outline-none transition-all focus:border-[#c5a059]"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[#888] text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+            <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#888]">
               <Clock size={14} className="text-[#c5a059]" /> Hora
             </label>
-            <select 
+            <select
               value={formData.time}
-              onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-              className="w-full bg-[#1a1a1a] border border-[#222] rounded-xl px-5 py-4 text-white focus:border-[#c5a059] outline-none transition-all appearance-none"
+              onChange={(e) => setFormData((prev) => ({ ...prev, time: e.target.value }))}
+              className="w-full appearance-none rounded-xl border border-[#222] bg-[#1a1a1a] px-5 py-4 text-white outline-none transition-all focus:border-[#c5a059]"
             >
               <option value="">Selecciona</option>
-              {["10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM"].map(t => (
-                <option key={t} value={t}>{t}</option>
+              {availableSlots.map(({ slot, disabled }) => (
+                <option key={slot} value={slot} disabled={disabled}>
+                  {disabled ? `${slot} (ocupado)` : slot}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
         <div className="space-y-2">
-          <label className="text-[#888] text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+          <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#888]">
             <User size={14} className="text-[#c5a059]" /> Tu Nombre
           </label>
-          <input 
+          <input
             type="text"
             placeholder="Nombre completo"
             value={formData.name}
-            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-            className="w-full bg-[#1a1a1a] border border-[#222] rounded-xl px-5 py-4 text-white focus:border-[#c5a059] outline-none transition-all"
+            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+            className="w-full rounded-xl border border-[#222] bg-[#1a1a1a] px-5 py-4 text-white outline-none transition-all focus:border-[#c5a059]"
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-[#888] text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+          <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#888]">
             <Phone size={14} className="text-[#c5a059]" /> WhatsApp
           </label>
-          <input 
+          <input
             type="tel"
             placeholder="Ej. 5512345678"
             value={formData.phone}
-            onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-            className="w-full bg-[#1a1a1a] border border-[#222] rounded-xl px-5 py-4 text-white focus:border-[#c5a059] outline-none transition-all"
+            onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+            className="w-full rounded-xl border border-[#222] bg-[#1a1a1a] px-5 py-4 text-white outline-none transition-all focus:border-[#c5a059]"
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-[#888] text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+          <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#888]">
             <Receipt size={14} className="text-[#c5a059]" /> Comprobante de Pago
           </label>
-          <div className="relative h-32 bg-[#1a1a1a] border border-[#222] border-dashed rounded-xl flex flex-col items-center justify-center text-[#888] hover:border-[#c5a059]/50 transition-all cursor-pointer group overflow-hidden">
+          <div className="group relative flex h-32 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#222] bg-[#1a1a1a] text-[#888] transition-all hover:border-[#c5a059]/50">
             {formData.proof ? (
               <Image src={formData.proof} alt="Comprobante" fill className="object-contain" />
             ) : (
@@ -183,19 +220,14 @@ function AgendaContent() {
                 <span className="text-[10px] font-bold uppercase tracking-widest">Sube tu foto</span>
               </>
             )}
-            <input 
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-            />
+            <input type="file" accept="image/*" onChange={handleFileChange} className="absolute inset-0 cursor-pointer opacity-0" />
           </div>
         </div>
 
-        <button 
+        <button
           type="submit"
           disabled={loading}
-          className="w-full bg-gradient-to-br from-[#c5a059] to-[#a68541] text-black font-extrabold py-4 rounded-xl shadow-[0_4px_20px_rgba(197,160,89,0.3)] uppercase tracking-widest text-sm disabled:opacity-50 flex items-center justify-center gap-2"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#c5a059] to-[#a68541] py-4 text-sm font-extrabold uppercase tracking-widest text-black shadow-[0_4px_20px_rgba(197,160,89,0.3)] disabled:opacity-50"
         >
           {loading ? <Loader2 size={18} className="animate-spin" /> : "Continuar"}
         </button>
@@ -207,7 +239,7 @@ function AgendaContent() {
 
 export default function AgendaPage() {
   return (
-    <main className="min-h-screen pb-24 bg-[#050505]">
+    <main className="min-h-screen bg-[#050505] pb-24">
       <Header />
       <Suspense fallback={<div className="flex justify-center py-20"><Loader2 className="animate-spin text-[#c5a059]" size={40} /></div>}>
         <AgendaContent />

@@ -12,21 +12,36 @@ import Link from "next/link";
 
 export default function ServiciosPage() {
   const [services, setServices] = useState<Service[]>([]);
-  const [cartCount, setCartCount] = useState(0);
+  const [cartCount] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    const savedCart = localStorage.getItem("barber_cart");
+    if (!savedCart) return 0;
+    const cart = JSON.parse(savedCart) as CartItem[];
+    return cart.reduce((acc, item) => acc + item.quantity, 0);
+  });
 
   useEffect(() => {
-    const savedCart = localStorage.getItem("barber_cart");
-    if (savedCart) {
-      const cart = JSON.parse(savedCart) as CartItem[];
-      setCartCount(cart.reduce((acc, item) => acc + item.quantity, 0));
-    }
-
-    const fetchServices = async () => {
-      const { data, error } = await supabase.from("services").select("*").order("id");
-      if (!error && data && data.length > 0) setServices(data);
-      else setServices(defaultServices);
+    const fetchServices = () => {
+      supabase
+        .from("services")
+        .select("*")
+        .order("id")
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) setServices(data);
+          else setServices(defaultServices);
+        });
     };
+
     fetchServices();
+
+    const channel = supabase
+      .channel("services-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "services" }, fetchServices)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (
