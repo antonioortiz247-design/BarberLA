@@ -8,7 +8,7 @@ import FloatingCart from "@/components/FloatingCart";
 import { supabase } from "@/lib/supabase";
 import { defaultProducts, defaultServices } from "@/lib/defaultData";
 import { Service, Product, CartItem } from "@/types";
-import { Clock, ChevronRight, Plus } from "lucide-react";
+import { Clock, ArrowRight, Plus } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -60,79 +60,71 @@ export default function Home() {
     <main className="min-h-screen pb-28 md:pb-32">
       <Header />
 
-      <div className="premium-shell pt-6 md:pt-8">
+      <div className="premium-shell space-y-14 py-6 md:space-y-16 md:py-8">
         <Hero />
 
-        <section className="mb-14 md:mb-16">
-          <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <section className="space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="section-kicker mb-3">Servicios de autor</p>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Servicios destacados</h2>
-              <p className="premium-lead mt-2">Experiencias precisas para una imagen limpia y sofisticada.</p>
+              <p className="urban-chip mb-3">Crafted Services</p>
+              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Rituales de corte con precisión total</h2>
+              <p className="premium-lead mt-2">Bloques visuales limpios, información clara y CTA directa.</p>
             </div>
-            <Link href="/servicios" className="text-[#d7b26c] text-sm font-semibold inline-flex items-center gap-1 hover:text-[#f5ddb0] transition-colors">
-              Ver todos <ChevronRight size={16} />
+            <Link href="/servicios" className="inline-flex items-center gap-1 text-sm font-semibold text-[#d8b06a] hover:text-[#f6ddb0]">
+              Ver catálogo <ArrowRight size={16} />
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid gap-4 md:grid-cols-3">
             {services.filter((s) => s.featured).map((service) => (
-              <Link
-                key={service.id}
-                href={`/agenda?service=${service.id}`}
-                className="premium-surface p-5 md:p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="min-w-0">
-                  <h3 className="text-lg md:text-xl font-semibold tracking-tight mb-2 line-clamp-2">{service.name}</h3>
-                  <p className="text-sm text-[#a7adb5] inline-flex items-center gap-1.5">
-                    <Clock size={14} className="text-[#d7b26c]" /> {service.duration}
-                  </p>
-                </div>
-                <span className="text-2xl font-extrabold tracking-tight text-[#d7b26c]">${service.price}</span>
+              <Link key={service.id} href={`/agenda?service=${service.id}`} className="glass-panel p-5 transition hover:-translate-y-1">
+                <h3 className="text-lg font-semibold mb-2 line-clamp-2">{service.name}</h3>
+                <p className="mb-5 inline-flex items-center gap-1.5 text-sm text-[#a7afbb]">
+                  <Clock size={14} className="text-[#d8b06a]" /> {service.duration}
+                </p>
+                <p className="text-2xl font-extrabold text-[#d8b06a]">${service.price}</p>
               </Link>
             ))}
           </div>
         </section>
 
-        <section className="mb-10 md:mb-14">
-          <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <section className="space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="section-kicker mb-3">Storefront curated</p>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Productos premium</h2>
-              <p className="premium-lead mt-2">Selección de grooming con estilo limpio, sofisticado y contemporáneo.</p>
+              <p className="urban-chip mb-3">Urban Store</p>
+              <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Productos premium para tu rutina</h2>
+              <p className="premium-lead mt-2">Tarjetas compactas, textos balanceados y acciones sin solapes.</p>
             </div>
-            <Link href="/tienda" className="text-[#d7b26c] text-sm font-semibold inline-flex items-center gap-1 hover:text-[#f5ddb0] transition-colors">
-              Ir a tienda <ChevronRight size={16} />
+            <Link href="/tienda" className="inline-flex items-center gap-1 text-sm font-semibold text-[#d8b06a] hover:text-[#f6ddb0]">
+              Ir a tienda <ArrowRight size={16} />
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-            {products
-              .filter((p) => p.featured)
-              .map((product) => (
-                <article key={product.id} className="premium-surface overflow-hidden group">
-                  <div className="relative aspect-square overflow-hidden">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {products.filter((p) => p.featured).map((product) => (
+              <article key={product.id} className="glass-panel overflow-hidden">
+                <div className="relative aspect-square overflow-hidden">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-cover transition duration-700 hover:scale-105"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="mb-3 min-h-[2.8rem] line-clamp-2 text-sm font-semibold md:text-base">{product.name}</h3>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="whitespace-nowrap text-lg font-bold text-[#d8b06a]">${product.price}</span>
+                    <button
+                      onClick={() => addToCart(product)}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#d8b06a]/35 bg-[#1b2230] text-[#d8b06a] transition hover:bg-[#d8b06a] hover:text-black"
+                    >
+                      <Plus size={18} strokeWidth={2.4} />
+                    </button>
                   </div>
-                  <div className="p-4">
-                    <h3 className="text-sm md:text-base font-semibold mb-3 line-clamp-2 min-h-[2.8rem]">{product.name}</h3>
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-bold text-lg text-[#d7b26c] whitespace-nowrap">${product.price}</span>
-                      <button
-                        onClick={() => addToCart(product)}
-                        className="h-10 w-10 shrink-0 rounded-xl border border-[#d7b26c]/30 bg-[#1a1f27] text-[#d7b26c] flex items-center justify-center hover:bg-[#d7b26c] hover:text-black transition-all"
-                      >
-                        <Plus size={18} strokeWidth={2.4} />
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              ))}
+                </div>
+              </article>
+            ))}
           </div>
         </section>
       </div>

@@ -5,43 +5,51 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <section className="relative mb-14 min-h-[62svh] overflow-hidden rounded-[2rem] border border-white/10 lg:min-h-[68svh]">
+    <section className="relative overflow-hidden rounded-[2rem] border border-white/10">
       <div
         className="absolute inset-0"
         style={{
           backgroundImage:
-            'linear-gradient(180deg, rgba(5,8,13,0.12) 0%, rgba(5,8,13,0.72) 55%, rgba(5,8,13,0.95) 100%), url("https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=1800")',
+            'linear-gradient(110deg, rgba(8,10,14,0.92) 0%, rgba(8,10,14,0.66) 46%, rgba(8,10,14,0.88) 100%), url("https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=2000")',
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(215,178,108,0.26),transparent_40%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_88%,rgba(109,154,255,0.15),transparent_44%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_14%,rgba(216,176,106,0.24),transparent_40%)]" />
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
-        className="relative z-10 flex min-h-[62svh] flex-col justify-end p-6 md:p-10 lg:min-h-[68svh] lg:p-14"
+        className="relative z-10 grid min-h-[68svh] items-end gap-8 p-6 md:min-h-[74svh] md:grid-cols-[1.3fr_0.7fr] md:p-10 lg:p-14"
       >
-        <p className="section-kicker mb-4 w-fit">Future Grooming Studio</p>
-        <h1 className="premium-title mb-4 max-w-[16ch] text-white">
-          Precisión premium para una imagen <span className="text-[#d7b26c]">sofisticada</span>.
-        </h1>
-        <p className="premium-lead mb-8 max-w-xl">
-          Experiencia inspirada en Apple, Tesla y Uber Eats: limpia, rápida y elegante en cada interacción.
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <Link href="/agenda" className="btn-primary w-fit">
-            Reservar cita
-          </Link>
-          <Link
-            href="/servicios"
-            className="inline-flex rounded-xl border border-white/20 bg-black/35 px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:border-[#d7b26c]/50 hover:text-[#f5ddb0]"
-          >
-            Ver servicios
-          </Link>
+        <div>
+          <span className="urban-chip mb-4">Street Luxury Experience</span>
+          <h1 className="premium-title mb-4 max-w-[15ch]">
+            Futurismo limpio para una barbería con <span className="text-[#d8b06a]">carácter urbano</span>.
+          </h1>
+          <p className="premium-lead mb-8 max-w-xl">
+            Flujos rápidos, visual premium y una experiencia moderna inspirada en Tesla, Apple y la energía de la calle.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/agenda" className="cta-gold">Agendar ahora</Link>
+            <Link href="/tienda" className="ghost-btn">Explorar tienda</Link>
+          </div>
         </div>
+
+        <aside className="glass-panel p-4 md:p-5">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-[#99a7ba] mb-3">Experience metrics</p>
+          <div className="space-y-3">
+            <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+              <p className="text-2xl font-bold">+2,500</p>
+              <p className="text-xs text-[#a7afbb]">Cortes realizados</p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-black/20 p-3">
+              <p className="text-2xl font-bold">4.9★</p>
+              <p className="text-xs text-[#a7afbb]">Calificación promedio</p>
+            </div>
+          </div>
+        </aside>
       </motion.div>
     </section>
   );

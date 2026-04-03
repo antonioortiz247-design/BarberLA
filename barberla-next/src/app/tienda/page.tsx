@@ -45,29 +45,31 @@ export default function TiendaPage() {
   return (
     <main className="min-h-screen pb-28 md:pb-32">
       <Header />
-      <div className="premium-shell pt-8">
-        <p className="section-kicker mb-4">Luxury storefront</p>
-        <h1 className="premium-title mb-3">Nuestra <span className="text-[#d7b26c]">Tienda</span></h1>
-        <p className="premium-lead mb-8">Productos de alto rendimiento en un layout limpio, legible y perfectamente adaptable.</p>
+      <div className="premium-shell space-y-8 py-8">
+        <div>
+          <p className="urban-chip mb-3">Street Storefront</p>
+          <h1 className="premium-title mb-3">Tienda <span className="text-[#d8b06a]">BarberLA</span></h1>
+          <p className="premium-lead">Diseño limpio y modular para descubrir y comprar sin fricción.</p>
+        </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {products.map((product) => (
-            <article key={product.id} className="premium-surface overflow-hidden group">
+            <article key={product.id} className="glass-panel overflow-hidden">
               <div className="relative aspect-square overflow-hidden">
                 <Image
                   src={product.image}
                   alt={product.name}
                   fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="object-cover transition duration-700 hover:scale-105"
                 />
               </div>
               <div className="p-4">
-                <h2 className="text-sm md:text-base font-semibold mb-3 line-clamp-2 min-h-[2.8rem]">{product.name}</h2>
-                <div className="flex justify-between items-center gap-3">
-                  <span className="text-[#d7b26c] font-bold text-lg whitespace-nowrap">${product.price}</span>
+                <h2 className="mb-3 min-h-[2.8rem] line-clamp-2 text-sm font-semibold md:text-base">{product.name}</h2>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="whitespace-nowrap text-lg font-bold text-[#d8b06a]">${product.price}</span>
                   <button
                     onClick={() => addToCart(product)}
-                    className="h-10 w-10 shrink-0 rounded-xl border border-[#d7b26c]/30 bg-[#1a1f27] text-[#d7b26c] flex items-center justify-center hover:bg-[#d7b26c] hover:text-black transition-all"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#d8b06a]/35 bg-[#1b2230] text-[#d8b06a] transition hover:bg-[#d8b06a] hover:text-black"
                   >
                     <Plus size={18} strokeWidth={2.4} />
                   </button>
