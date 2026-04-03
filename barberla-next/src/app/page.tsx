@@ -64,12 +64,13 @@ export default function Home() {
         <Hero />
 
         <section className="mb-14 md:mb-16">
-          <div className="mb-7 flex items-end justify-between gap-4">
+          <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
+              <p className="section-kicker mb-3">Servicios de autor</p>
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Servicios destacados</h2>
               <p className="premium-lead mt-2">Experiencias precisas para una imagen limpia y sofisticada.</p>
             </div>
-            <Link href="/servicios" className="text-[#d0ac67] text-sm font-semibold inline-flex items-center gap-1 hover:text-[#f4dba3] transition-colors">
+            <Link href="/servicios" className="text-[#d7b26c] text-sm font-semibold inline-flex items-center gap-1 hover:text-[#f5ddb0] transition-colors">
               Ver todos <ChevronRight size={16} />
             </Link>
           </div>
@@ -79,27 +80,28 @@ export default function Home() {
               <Link
                 key={service.id}
                 href={`/agenda?service=${service.id}`}
-                className="premium-surface p-5 md:p-6 flex justify-between items-center"
+                className="premium-surface p-5 md:p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div>
-                  <h3 className="text-lg md:text-xl font-semibold tracking-tight mb-2">{service.name}</h3>
+                <div className="min-w-0">
+                  <h3 className="text-lg md:text-xl font-semibold tracking-tight mb-2 line-clamp-2">{service.name}</h3>
                   <p className="text-sm text-[#a7adb5] inline-flex items-center gap-1.5">
-                    <Clock size={14} className="text-[#d0ac67]" /> {service.duration}
+                    <Clock size={14} className="text-[#d7b26c]" /> {service.duration}
                   </p>
                 </div>
-                <span className="text-2xl font-extrabold tracking-tight text-[#d0ac67]">${service.price}</span>
+                <span className="text-2xl font-extrabold tracking-tight text-[#d7b26c]">${service.price}</span>
               </Link>
             ))}
           </div>
         </section>
 
         <section className="mb-10 md:mb-14">
-          <div className="mb-7 flex items-end justify-between gap-4">
+          <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
+              <p className="section-kicker mb-3">Storefront curated</p>
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Productos premium</h2>
-              <p className="premium-lead mt-2">Selección curada de grooming para mantener tu estilo todos los días.</p>
+              <p className="premium-lead mt-2">Selección de grooming con estilo limpio, sofisticado y contemporáneo.</p>
             </div>
-            <Link href="/tienda" className="text-[#d0ac67] text-sm font-semibold inline-flex items-center gap-1 hover:text-[#f4dba3] transition-colors">
+            <Link href="/tienda" className="text-[#d7b26c] text-sm font-semibold inline-flex items-center gap-1 hover:text-[#f5ddb0] transition-colors">
               Ir a tienda <ChevronRight size={16} />
             </Link>
           </div>
@@ -118,12 +120,12 @@ export default function Home() {
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-sm md:text-base font-semibold mb-3 line-clamp-1">{product.name}</h3>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-lg text-[#d0ac67]">${product.price}</span>
+                    <h3 className="text-sm md:text-base font-semibold mb-3 line-clamp-2 min-h-[2.8rem]">{product.name}</h3>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-bold text-lg text-[#d7b26c] whitespace-nowrap">${product.price}</span>
                       <button
                         onClick={() => addToCart(product)}
-                        className="h-10 w-10 rounded-xl border border-[#d0ac67]/30 bg-[#17191c] text-[#d0ac67] flex items-center justify-center hover:bg-[#d0ac67] hover:text-black transition-all"
+                        className="h-10 w-10 shrink-0 rounded-xl border border-[#d7b26c]/30 bg-[#1a1f27] text-[#d7b26c] flex items-center justify-center hover:bg-[#d7b26c] hover:text-black transition-all"
                       >
                         <Plus size={18} strokeWidth={2.4} />
                       </button>

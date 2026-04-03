@@ -46,8 +46,9 @@ export default function TiendaPage() {
     <main className="min-h-screen pb-28 md:pb-32">
       <Header />
       <div className="premium-shell pt-8">
-        <h1 className="premium-title mb-3">Nuestra <span className="text-[#d0ac67]">Tienda</span></h1>
-        <p className="premium-lead mb-8">Productos de alto rendimiento para mantener tu look impecable dentro y fuera del estudio.</p>
+        <p className="section-kicker mb-4">Luxury storefront</p>
+        <h1 className="premium-title mb-3">Nuestra <span className="text-[#d7b26c]">Tienda</span></h1>
+        <p className="premium-lead mb-8">Productos de alto rendimiento en un layout limpio, legible y perfectamente adaptable.</p>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
           {products.map((product) => (
@@ -61,12 +62,12 @@ export default function TiendaPage() {
                 />
               </div>
               <div className="p-4">
-                <h2 className="text-sm md:text-base font-semibold mb-3 line-clamp-1">{product.name}</h2>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#d0ac67] font-bold text-lg">${product.price}</span>
+                <h2 className="text-sm md:text-base font-semibold mb-3 line-clamp-2 min-h-[2.8rem]">{product.name}</h2>
+                <div className="flex justify-between items-center gap-3">
+                  <span className="text-[#d7b26c] font-bold text-lg whitespace-nowrap">${product.price}</span>
                   <button
                     onClick={() => addToCart(product)}
-                    className="h-10 w-10 rounded-xl border border-[#d0ac67]/30 bg-[#17191c] text-[#d0ac67] flex items-center justify-center hover:bg-[#d0ac67] hover:text-black transition-all"
+                    className="h-10 w-10 shrink-0 rounded-xl border border-[#d7b26c]/30 bg-[#1a1f27] text-[#d7b26c] flex items-center justify-center hover:bg-[#d7b26c] hover:text-black transition-all"
                   >
                     <Plus size={18} strokeWidth={2.4} />
                   </button>

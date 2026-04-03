@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #050505;
-  --bg-soft: #0b0b0d;
-  --card-bg: #111214;
-  --card-hover: #15171a;
-  --gold: #d0ac67;
-  --gold-soft: #f4dba3;
-  --text: #f5f6f7;
-  --text-muted: #9a9da3;
-  --border: #25282d;
+  --bg: #060708;
+  --bg-soft: #0d0f12;
+  --card-bg: #121418;
+  --card-hover: #191d22;
+  --gold: #d7b26c;
+  --gold-soft: #f5ddb0;
+  --text: #f5f7fa;
+  --text-muted: #a1a8b3;
+  --border: #2a3038;
   --font-main: "Inter", "SF Pro Display", "Outfit", sans-serif;
 }
 
@@ -20,63 +20,83 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   background:
-    radial-gradient(circle at 12% -8%, rgba(208, 172, 103, 0.14), transparent 35%),
-    radial-gradient(circle at 88% 8%, rgba(255, 255, 255, 0.05), transparent 34%),
-    linear-gradient(180deg, #090909 0%, #050505 58%, #040404 100%);
+    radial-gradient(circle at 10% -12%, rgba(215, 178, 108, 0.16), transparent 34%),
+    radial-gradient(circle at 92% 10%, rgba(126, 162, 255, 0.08), transparent 32%),
+    linear-gradient(180deg, #0d0f12 0%, #060708 58%, #050607 100%);
   color: var(--text);
   font-family: var(--font-main);
   line-height: 1.55;
   min-height: 100vh;
   letter-spacing: 0.01em;
+  text-wrap: pretty;
 }
 
 @theme {
-  --color-gold: #d0ac67;
-  --color-bg: #050505;
-  --color-card-bg: #111214;
+  --color-gold: #d7b26c;
+  --color-bg: #060708;
+  --color-card-bg: #121418;
 }
 
 .premium-shell {
-  width: min(100%, 1120px);
+  width: min(100%, 1180px);
   margin-inline: auto;
-  padding-inline: clamp(1rem, 3.8vw, 2rem);
+  padding-inline: clamp(1rem, 3.8vw, 2.4rem);
 }
 
 @media (min-width: 1024px) {
   .premium-shell {
-    padding-inline: clamp(2rem, 4vw, 3rem);
+    padding-inline: clamp(2.2rem, 4vw, 3.4rem);
   }
 }
 
 .premium-title {
-  font-size: clamp(2rem, 4.2vw, 3.4rem);
+  font-size: clamp(1.9rem, 4vw, 3.35rem);
   font-weight: 800;
-  line-height: 1.08;
+  line-height: 1.06;
   letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 
 .premium-lead {
   color: var(--text-muted);
-  font-size: clamp(0.95rem, 1.5vw, 1.12rem);
+  font-size: clamp(0.95rem, 1.45vw, 1.1rem);
   max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(215, 178, 108, 0.28);
+  background: rgba(20, 23, 28, 0.7);
+  color: #edd3a0;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.78rem;
 }
 
 .premium-surface {
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)), var(--card-bg);
+  background: linear-gradient(170deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)), var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 1.35rem;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 18px 40px rgba(0, 0, 0, 0.35);
-  transition: border-color 280ms ease, transform 280ms ease, background-color 280ms ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 16px 38px rgba(2, 4, 7, 0.35);
+  transition: border-color 260ms ease, transform 260ms ease, background-color 260ms ease, box-shadow 260ms ease;
 }
 
 .premium-surface:hover {
-  border-color: rgba(208, 172, 103, 0.32);
+  border-color: rgba(215, 178, 108, 0.34);
   background-color: var(--card-hover);
   transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 22px 42px rgba(2, 4, 7, 0.45);
 }
 
 .btn-primary {
@@ -84,23 +104,23 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 1px solid rgba(244, 219, 163, 0.28);
+  border: 1px solid rgba(245, 221, 176, 0.34);
   border-radius: 0.95rem;
   background: linear-gradient(135deg, var(--gold-soft), var(--gold));
   color: #111;
   font-weight: 700;
-  font-size: 0.76rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  padding: 0.95rem 1.3rem;
-  box-shadow: 0 12px 24px rgba(208, 172, 103, 0.24);
-  transition: transform 260ms ease, box-shadow 260ms ease, filter 260ms ease;
+  letter-spacing: 0.13em;
+  padding: 0.95rem 1.35rem;
+  box-shadow: 0 12px 24px rgba(215, 178, 108, 0.24);
+  transition: transform 220ms ease, box-shadow 220ms ease, filter 220ms ease;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
   filter: saturate(1.04);
-  box-shadow: 0 16px 28px rgba(208, 172, 103, 0.33);
+  box-shadow: 0 16px 28px rgba(215, 178, 108, 0.32);
 }
 
 .btn-primary:active {
@@ -109,8 +129,8 @@ body {
 
 .input-premium {
   width: 100%;
-  background: #15171a;
-  border: 1px solid #2a2f35;
+  background: #151921;
+  border: 1px solid #2d343e;
   border-radius: 0.9rem;
   padding: 0.75rem 0.9rem;
   color: var(--text);
@@ -119,6 +139,6 @@ body {
 
 .input-premium:focus {
   outline: none;
-  border-color: rgba(208, 172, 103, 0.65);
-  box-shadow: 0 0 0 3px rgba(208, 172, 103, 0.12);
+  border-color: rgba(215, 178, 108, 0.66);
+  box-shadow: 0 0 0 3px rgba(215, 178, 108, 0.13);
 }
