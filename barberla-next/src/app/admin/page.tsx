@@ -522,6 +522,10 @@ export default function AdminPage() {
                 </div>
 
                 <div className="flex-1 space-y-2">
+                  <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-widest text-[#888]">
+                    <span>Producto #{product.id}</span>
+                    {savingProducts[product.id] && <span className="inline-flex items-center gap-1 text-[#c5a059]"><Loader2 size={12} className="animate-spin" /> Guardando</span>}
+                  </div>
                   <input
                     value={product.name}
                     onChange={(e) => updateProductField(product.id, "name", e.target.value)}
