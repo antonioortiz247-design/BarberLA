@@ -5,33 +5,35 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <section className="relative h-[450px] w-full flex flex-col justify-center items-center text-center px-6 overflow-hidden rounded-3xl mb-12">
-      <div 
-        className="absolute inset-0 z-0"
+    <section className="relative overflow-hidden rounded-[1.8rem] border border-white/10 min-h-[66vh] flex items-end mb-12">
+      <div
+        className="absolute inset-0"
         style={{
-          backgroundImage: 'linear-gradient(to bottom, rgba(5,5,5,0.4), rgba(5,5,5,0.9)), url("https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=800")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundImage:
+            'linear-gradient(180deg, rgba(4,4,4,0.2) 0%, rgba(4,4,4,0.75) 55%, rgba(4,4,4,0.95) 100%), url("https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&q=80&w=1800")',
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       />
-      
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_15%,rgba(208,172,103,0.2),transparent_42%)]" />
+
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10"
+        transition={{ duration: 0.7, ease: "easeOut" }}
+        className="relative z-10 w-full p-6 md:p-10 lg:p-14"
       >
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
-          Corte & Estilo <span className="text-[#c5a059] italic">Premium</span>
-        </h1>
-        <p className="text-[#888] text-lg mb-8 max-w-[300px] mx-auto font-light">
-          Donde la tradición se encuentra con la modernidad.
+        <p className="inline-flex items-center rounded-full border border-[#d0ac67]/30 bg-black/35 px-3 py-1 text-[11px] uppercase tracking-[0.2em] text-[#e6cb96] mb-4">
+          BarberLA Signature Experience
         </p>
-        <Link 
-          href="/agenda" 
-          className="inline-block bg-gradient-to-br from-[#c5a059] to-[#a68541] text-black font-bold px-10 py-4 rounded-xl shadow-[0_4px_20px_rgba(197,160,89,0.3)] hover:scale-105 transition-transform duration-300 uppercase tracking-widest text-sm"
-        >
-          Agendar Cita
+        <h1 className="premium-title max-w-2xl text-white mb-4">
+          Imagen precisa. Estilo futurista. <span className="text-[#d0ac67]">Lujo urbano.</span>
+        </h1>
+        <p className="premium-lead mb-8 max-w-xl">
+          Corte, barba y grooming con estética premium inspirada en Apple + Tesla + street luxury.
+        </p>
+        <Link href="/agenda" className="btn-primary w-fit">
+          Reservar cita
         </Link>
       </motion.div>
     </section>
