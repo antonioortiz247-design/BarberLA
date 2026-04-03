@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 
@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: "BarberLA | Premium Grooming",
   description: "Corte & Estilo Premium. Donde la tradición se encuentra con la modernidad.",
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
   themeColor: "#050505",
 };
 
