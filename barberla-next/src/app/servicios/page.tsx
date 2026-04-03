@@ -33,7 +33,7 @@ export default function ServiciosPage() {
     <main className="min-h-screen pb-28 md:pb-32">
       <Header />
       <div className="premium-shell space-y-8 py-8">
-        <div>
+        <div className="max-w-3xl text-center md:text-left md:max-w-none">
           <p className="urban-chip mb-3">Bento Services</p>
           <h1 className="premium-title mb-3">Servicios <span className="text-[#d8b06a]">BarberLA</span></h1>
           <p className="premium-lead">Módulos de servicio con glassmorphism, lectura clara y CTA directos.</p>

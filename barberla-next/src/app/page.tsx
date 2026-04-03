@@ -66,7 +66,7 @@ export default function Home() {
         <section className="bento-grid">
           <article className="glass-panel bento-main p-5 md:p-6">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
+              <div className="max-w-2xl">
                 <p className="urban-chip mb-2">Bento Services</p>
                 <h2 className="text-2xl font-bold md:text-3xl">Servicios destacados</h2>
               </div>

@@ -46,7 +46,7 @@ export default function TiendaPage() {
     <main className="min-h-screen pb-28 md:pb-32">
       <Header />
       <div className="premium-shell space-y-8 py-8">
-        <div>
+        <div className="max-w-3xl text-center md:text-left md:max-w-none">
           <p className="urban-chip mb-3">Bento Store</p>
           <h1 className="premium-title mb-3">Tienda <span className="text-[#d8b06a]">Glass Edition</span></h1>
           <p className="premium-lead">Catálogo modular en bloques tipo bento para explorar y comprar sin fricción.</p>

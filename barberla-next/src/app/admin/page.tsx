@@ -17,7 +17,8 @@ import {
   Phone, 
   Scissors, 
   ShoppingBag,
-  Pencil
+  Pencil,
+  Upload
 } from "lucide-react";
 import Image from "next/image";
 
@@ -40,6 +41,14 @@ export default function AdminPage() {
     featured: false
   });
 
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("No se pudo leer la imagen"));
+      reader.readAsDataURL(file);
+    });
+
   async function fetchAdminData() {
     const [bookingsRes, servicesRes, productsRes] = await Promise.all([
       supabase.from("bookings").select("*").order("date", { ascending: true }),
@@ -55,6 +64,18 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAdmin) fetchAdminData();
   }, [isAdmin]);
+
+  const handleNewProductImageUpload = async (file: File | null) => {
+    if (!file) return;
+    const imageUrl = await readFileAsDataUrl(file);
+    setNewProduct((prev) => ({ ...prev, image: imageUrl }));
+  };
+
+  const handleExistingProductImageUpload = async (id: number, file: File | null) => {
+    if (!file) return;
+    const imageUrl = await readFileAsDataUrl(file);
+    handleProductField(id, "image", imageUrl);
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,7 +172,7 @@ export default function AdminPage() {
     return (
       <main className="min-h-screen bg-[#050505] flex flex-col items-center justify-center px-6">
         <Header />
-        <div className="w-full max-w-[350px] bg-[#0f0f0f] p-8 rounded-3xl border border-[#222] shadow-2xl">
+        <div className="w-full max-w-[420px] bg-[#0f0f0f] p-8 rounded-3xl border border-[#222] shadow-2xl">
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 bg-[#1a1a1a] rounded-2xl flex items-center justify-center border border-[#c5a059]/20">
               <ShieldCheck size={32} className="text-[#c5a059]" />
@@ -181,8 +202,8 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen pb-32 bg-[#060606]">
       <Header />
-      <div className="premium-shell">
-        <div className="flex justify-between items-center mb-10">
+      <div className="premium-shell py-6 md:py-8">
+        <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-extrabold text-white tracking-tight">Panel <span className="text-[#c5a059]">Admin</span></h2>
           <button onClick={handleLogout} className="bg-[#1a1a1a] text-[#888] p-2 rounded-lg border border-[#222] hover:text-white transition-all">
             <LogOut size={18} />
@@ -203,8 +224,8 @@ export default function AdminPage() {
                 const statusColor = booking.status === 'Confirmada' ? 'text-green-500' : (booking.status === 'Cancelada' ? 'text-red-500' : 'text-[#c5a059]');
                 
                 return (
-                  <div key={booking.id} className="bg-[#0f0f0f] border border-[#222] rounded-3xl p-6 relative group overflow-hidden">
-                    <div className="flex justify-between items-start mb-4">
+                  <div key={booking.id} className="bg-[#0f0f0f] border border-[#222] rounded-3xl p-5 md:p-6 relative group overflow-hidden">
+                    <div className="flex flex-col md:flex-row justify-between items-start mb-4 gap-4">
                       <div className="space-y-1">
                         <h4 className="text-white font-bold text-lg">{booking.name}</h4>
                         <div className="flex items-center gap-2 text-[#888] text-xs font-light">
@@ -222,7 +243,7 @@ export default function AdminPage() {
                       </span>
                     </div>
 
-                    <div className="flex gap-3 pt-4 border-t border-[#222]">
+                    <div className="flex flex-wrap gap-3 pt-4 border-t border-[#222]">
                       {booking.proof && (
                         <button 
                           onClick={() => setSelectedProof(booking.proof)}
@@ -256,7 +277,7 @@ export default function AdminPage() {
           <h3 className="text-[#c5a059] text-[10px] font-bold uppercase tracking-widest mb-6 flex items-center gap-2">
             <ShoppingBag size={14} /> Gestionar Productos
           </h3>
-          <div className="grid grid-cols-1 gap-4 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
             {products.map(p => (
               <div key={p.id} className="bg-[#0f0f0f] border border-[#2a2a2a] rounded-3xl p-4 flex gap-4 items-start group">
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden transition-all duration-500 border border-[#c8a96a]/20">
@@ -291,6 +312,15 @@ export default function AdminPage() {
                     onChange={(e) => handleProductField(p.id, "image", e.target.value)}
                     className="w-full bg-[#171717] border border-[#2f2f2f] rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-[#c8a96a]"
                   />
+                  <label className="w-full bg-[#171717] border border-dashed border-[#3b3b3b] rounded-xl px-3 py-2 text-[11px] uppercase tracking-wider text-[#bcbcbc] flex items-center justify-center gap-2 cursor-pointer hover:border-[#c8a96a]/50 transition">
+                    <Upload size={12} /> Subir imagen desde dispositivo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleExistingProductImageUpload(p.id, e.target.files?.[0] ?? null)}
+                    />
+                  </label>
                   <div className="flex gap-2">
                     <button
                       onClick={() => updateProduct(p)}
@@ -311,7 +341,7 @@ export default function AdminPage() {
           </div>
 
           {/* Agregar Producto Form */}
-          <form onSubmit={handleAddProduct} className="bg-[#0f0f0f] p-8 rounded-3xl border border-[#222] space-y-5">
+          <form onSubmit={handleAddProduct} className="bg-[#0f0f0f] p-6 md:p-8 rounded-3xl border border-[#222] space-y-5 max-w-2xl">
             <h4 className="text-white font-bold uppercase tracking-widest text-xs text-center mb-4">Nuevo Producto</h4>
             <input 
               type="text" 
@@ -334,6 +364,15 @@ export default function AdminPage() {
               onChange={(e) => setNewProduct(prev => ({ ...prev, image: e.target.value }))}
               className="w-full bg-[#1a1a1a] border border-[#222] rounded-xl px-4 py-3 text-white text-sm outline-none"
             />
+            <label className="w-full bg-[#1a1a1a] border border-dashed border-[#3b3b3b] rounded-xl px-4 py-3 text-[11px] uppercase tracking-wider text-[#bcbcbc] flex items-center justify-center gap-2 cursor-pointer hover:border-[#c8a96a]/50 transition">
+              <Upload size={12} /> Subir imagen desde dispositivo
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleNewProductImageUpload(e.target.files?.[0] ?? null)}
+              />
+            </label>
             <div className="flex items-center gap-3 bg-[#1a1a1a] p-4 rounded-xl border border-[#222]">
               <input 
                 type="checkbox" 
