@@ -29,14 +29,12 @@ export default function TiendaPage() {
   const addToCart = (product: Product) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
-      let newCart;
-      if (existing) {
-        newCart = prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      } else {
-        newCart = [...prev, { ...product, quantity: 1 }];
-      }
+      const newCart = existing
+        ? prev.map((item) =>
+            item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          )
+        : [...prev, { ...product, quantity: 1 }];
+
       localStorage.setItem("barber_cart", JSON.stringify(newCart));
       return newCart;
     });
@@ -45,35 +43,36 @@ export default function TiendaPage() {
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <main className="min-h-screen pb-28 bg-[#060606]">
+    <main className="min-h-screen pb-28 md:pb-32">
       <Header />
-      <div className="premium-shell">
-        <h2 className="premium-title text-white mb-8">Nuestra <span className="text-[#c8a96a]">Tienda</span></h2>
-        
-        <div className="grid grid-cols-2 gap-5">
+      <div className="premium-shell pt-8">
+        <h1 className="premium-title mb-3">Nuestra <span className="text-[#d0ac67]">Tienda</span></h1>
+        <p className="premium-lead mb-8">Productos de alto rendimiento para mantener tu look impecable dentro y fuera del estudio.</p>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
           {products.map((product) => (
-            <div key={product.id} className="bg-[#101010] border border-[#272727] rounded-3xl overflow-hidden group hover:border-[#c8a96a]/30 transition-all duration-500">
+            <article key={product.id} className="premium-surface overflow-hidden group">
               <div className="relative aspect-square overflow-hidden">
-                <Image 
-                  src={product.image} 
+                <Image
+                  src={product.image}
                   alt={product.name}
                   fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-700"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </div>
-              <div className="p-5">
-                <h4 className="text-white text-sm font-bold mb-3 line-clamp-1">{product.name}</h4>
+              <div className="p-4">
+                <h2 className="text-sm md:text-base font-semibold mb-3 line-clamp-1">{product.name}</h2>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#c8a96a] font-extrabold text-lg tracking-tight">${product.price}</span>
-                  <button 
+                  <span className="text-[#d0ac67] font-bold text-lg">${product.price}</span>
+                  <button
                     onClick={() => addToCart(product)}
-                    className="bg-[#1a1a1a] text-[#c8a96a] p-2.5 rounded-xl border border-[#c8a96a]/20 hover:bg-[#c8a96a] hover:text-black transition-all duration-300"
+                    className="h-10 w-10 rounded-xl border border-[#d0ac67]/30 bg-[#17191c] text-[#d0ac67] flex items-center justify-center hover:bg-[#d0ac67] hover:text-black transition-all"
                   >
-                    <Plus size={18} strokeWidth={2.5} />
+                    <Plus size={18} strokeWidth={2.4} />
                   </button>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>

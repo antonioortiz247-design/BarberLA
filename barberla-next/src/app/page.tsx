@@ -8,7 +8,7 @@ import FloatingCart from "@/components/FloatingCart";
 import { supabase } from "@/lib/supabase";
 import { defaultProducts, defaultServices } from "@/lib/defaultData";
 import { Service, Product, CartItem } from "@/types";
-import { ShoppingCart, Clock, ChevronRight, Plus } from "lucide-react";
+import { Clock, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -16,19 +16,16 @@ export default function Home() {
   const [services, setServices] = useState<Service[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Cargar carrito de localStorage
     const savedCart = localStorage.getItem("barber_cart");
     if (savedCart) setCart(JSON.parse(savedCart));
 
-    // Cargar datos de Supabase
     const fetchData = async () => {
       try {
         const [servicesRes, productsRes] = await Promise.all([
           supabase.from("services").select("*").order("id"),
-          supabase.from("products").select("*").order("id")
+          supabase.from("products").select("*").order("id"),
         ]);
 
         setServices(servicesRes.data && servicesRes.data.length > 0 ? servicesRes.data : defaultServices);
@@ -37,8 +34,6 @@ export default function Home() {
         console.error("Error fetching data:", error);
         setServices(defaultServices);
         setProducts(defaultProducts);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -48,14 +43,12 @@ export default function Home() {
   const addToCart = (product: Product) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
-      let newCart;
-      if (existing) {
-        newCart = prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      } else {
-        newCart = [...prev, { ...product, quantity: 1 }];
-      }
+      const newCart = existing
+        ? prev.map((item) =>
+            item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          )
+        : [...prev, { ...product, quantity: 1 }];
+
       localStorage.setItem("barber_cart", JSON.stringify(newCart));
       return newCart;
     });
@@ -64,76 +57,80 @@ export default function Home() {
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <main className="min-h-screen pb-28 bg-[#060606]">
+    <main className="min-h-screen pb-28 md:pb-32">
       <Header />
-      
-      <div className="premium-shell">
+
+      <div className="premium-shell pt-6 md:pt-8">
         <Hero />
 
-        {/* Featured Services */}
-        <section className="mb-12">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-white tracking-tight">Servicios Destacados</h3>
-            <Link href="/servicios" className="text-[#c8a96a] text-sm font-medium flex items-center hover:text-[#f3d08b] transition-colors">
+        <section className="mb-14 md:mb-16">
+          <div className="mb-7 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Servicios destacados</h2>
+              <p className="premium-lead mt-2">Experiencias precisas para una imagen limpia y sofisticada.</p>
+            </div>
+            <Link href="/servicios" className="text-[#d0ac67] text-sm font-semibold inline-flex items-center gap-1 hover:text-[#f4dba3] transition-colors">
               Ver todos <ChevronRight size={16} />
             </Link>
           </div>
 
-          <div className="space-y-4">
-            {services.filter(s => s.featured).map((service) => (
-              <Link 
+          <div className="grid md:grid-cols-2 gap-4">
+            {services.filter((s) => s.featured).map((service) => (
+              <Link
                 key={service.id}
                 href={`/agenda?service=${service.id}`}
-                className="flex justify-between items-center p-5 bg-[#101010] border border-[#272727] rounded-2xl hover:border-[#c8a96a]/50 hover:bg-[#131313] transition-all duration-300 group"
+                className="premium-surface p-5 md:p-6 flex justify-between items-center"
               >
-                <div className="flex flex-col gap-1">
-                  <h4 className="text-white font-bold text-lg group-hover:text-[#c5a059] transition-colors">{service.name}</h4>
-                  <p className="text-[#a1a1a1] text-sm flex items-center gap-1.5 font-light">
-                    <Clock size={14} className="text-[#c8a96a]" /> {service.duration}
+                <div>
+                  <h3 className="text-lg md:text-xl font-semibold tracking-tight mb-2">{service.name}</h3>
+                  <p className="text-sm text-[#a7adb5] inline-flex items-center gap-1.5">
+                    <Clock size={14} className="text-[#d0ac67]" /> {service.duration}
                   </p>
                 </div>
-                <div className="text-xl font-extrabold text-[#c8a96a] tracking-tight">
-                  ${service.price}
-                </div>
+                <span className="text-2xl font-extrabold tracking-tight text-[#d0ac67]">${service.price}</span>
               </Link>
             ))}
           </div>
         </section>
 
-        {/* Featured Products */}
-        <section className="mb-12">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-white tracking-tight">Productos Populares</h3>
-            <Link href="/tienda" className="text-[#c8a96a] text-sm font-medium flex items-center hover:text-[#f3d08b] transition-colors">
+        <section className="mb-10 md:mb-14">
+          <div className="mb-7 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Productos premium</h2>
+              <p className="premium-lead mt-2">Selección curada de grooming para mantener tu estilo todos los días.</p>
+            </div>
+            <Link href="/tienda" className="text-[#d0ac67] text-sm font-semibold inline-flex items-center gap-1 hover:text-[#f4dba3] transition-colors">
               Ir a tienda <ChevronRight size={16} />
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 gap-5">
-            {products.filter(p => p.featured).map((product) => (
-              <div key={product.id} className="bg-[#101010] border border-[#272727] rounded-3xl overflow-hidden group hover:border-[#c8a96a]/30 transition-all duration-500">
-                <div className="relative aspect-square overflow-hidden">
-                  <Image 
-                    src={product.image} 
-                    alt={product.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                </div>
-                <div className="p-5">
-                  <h4 className="text-white text-sm font-bold mb-3 line-clamp-1">{product.name}</h4>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[#c8a96a] font-extrabold text-lg tracking-tight">${product.price}</span>
-                    <button 
-                      onClick={() => addToCart(product)}
-                      className="bg-[#1a1a1a] text-[#c8a96a] p-2.5 rounded-xl border border-[#c8a96a]/20 hover:bg-[#c8a96a] hover:text-black transition-all duration-300"
-                    >
-                      <Plus size={18} strokeWidth={2.5} />
-                    </button>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+            {products
+              .filter((p) => p.featured)
+              .map((product) => (
+                <article key={product.id} className="premium-surface overflow-hidden group">
+                  <div className="relative aspect-square overflow-hidden">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
                   </div>
-                </div>
-              </div>
-            ))}
+                  <div className="p-4">
+                    <h3 className="text-sm md:text-base font-semibold mb-3 line-clamp-1">{product.name}</h3>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-lg text-[#d0ac67]">${product.price}</span>
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="h-10 w-10 rounded-xl border border-[#d0ac67]/30 bg-[#17191c] text-[#d0ac67] flex items-center justify-center hover:bg-[#d0ac67] hover:text-black transition-all"
+                      >
+                        <Plus size={18} strokeWidth={2.4} />
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
           </div>
         </section>
       </div>
