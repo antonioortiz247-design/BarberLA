@@ -2,16 +2,15 @@
 
 :root {
   --bg: #050505;
-  --card-bg: #0f0f0f;
-  --gold: #c5a059;
-  --gold-dark: #a68541;
-  --text: #e0e0e0;
-  --text-muted: #888;
-  --border: #222;
-  --success: #2ecc71;
-  --danger: #e74c3c;
-  --font-main: 'Outfit', sans-serif;
-  --font-accent: 'Outfit', sans-serif;
+  --bg-soft: #0b0b0d;
+  --card-bg: #111214;
+  --card-hover: #15171a;
+  --gold: #d0ac67;
+  --gold-soft: #f4dba3;
+  --text: #f5f6f7;
+  --text-muted: #9a9da3;
+  --border: #25282d;
+  --font-main: "Inter", "SF Pro Display", "Outfit", sans-serif;
 }
 
 * {
@@ -22,91 +21,104 @@
 }
 
 body {
-  background-color: var(--bg);
+  background:
+    radial-gradient(circle at 12% -8%, rgba(208, 172, 103, 0.14), transparent 35%),
+    radial-gradient(circle at 88% 8%, rgba(255, 255, 255, 0.05), transparent 34%),
+    linear-gradient(180deg, #090909 0%, #050505 58%, #040404 100%);
   color: var(--text);
   font-family: var(--font-main);
-  line-height: 1.6;
-  overflow-x: hidden;
+  line-height: 1.55;
   min-height: 100vh;
-  font-weight: 300;
+  letter-spacing: 0.01em;
 }
 
 @theme {
-  --color-gold: #c5a059;
-  --color-gold-dark: #a68541;
+  --color-gold: #d0ac67;
   --color-bg: #050505;
-  --color-card-bg: #0f0f0f;
+  --color-card-bg: #111214;
+}
+
+.premium-shell {
+  width: min(100%, 1120px);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 3.8vw, 2rem);
+}
+
+@media (min-width: 1024px) {
+  .premium-shell {
+    padding-inline: clamp(2rem, 4vw, 3rem);
+  }
+}
+
+.premium-title {
+  font-size: clamp(2rem, 4.2vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.premium-lead {
+  color: var(--text-muted);
+  font-size: clamp(0.95rem, 1.5vw, 1.12rem);
+  max-width: 62ch;
+}
+
+.premium-surface {
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)), var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 1.35rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 18px 40px rgba(0, 0, 0, 0.35);
+  transition: border-color 280ms ease, transform 280ms ease, background-color 280ms ease;
+}
+
+.premium-surface:hover {
+  border-color: rgba(208, 172, 103, 0.32);
+  background-color: var(--card-hover);
+  transform: translateY(-2px);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-  color: #000;
-  border: none;
-  padding: 1rem;
-  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(244, 219, 163, 0.28);
+  border-radius: 0.95rem;
+  background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+  color: #111;
   font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(197, 160, 89, 0.2);
-  width: 100%;
+  font-size: 0.76rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.12em;
+  padding: 0.95rem 1.3rem;
+  box-shadow: 0 12px 24px rgba(208, 172, 103, 0.24);
+  transition: transform 260ms ease, box-shadow 260ms ease, filter 260ms ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  filter: saturate(1.04);
+  box-shadow: 0 16px 28px rgba(208, 172, 103, 0.33);
 }
 
 .btn-primary:active {
-  transform: scale(0.98);
+  transform: translateY(0) scale(0.985);
 }
 
-.card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.2rem;
-  transition: all 0.3s ease;
-}
-
-.section-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.2rem;
-}
-
-.section-title h3 {
-  font-size: 1.2rem;
-  color: var(--text);
-  font-weight: 600;
-}
-
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
-.product-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.product-card img {
+.input-premium {
   width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
+  background: #15171a;
+  border: 1px solid #2a2f35;
+  border-radius: 0.9rem;
+  padding: 0.75rem 0.9rem;
+  color: var(--text);
+  transition: border-color 220ms ease, box-shadow 220ms ease;
 }
 
-.product-info {
-  padding: 1rem;
-}
-
-.product-info h4 {
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.input-premium:focus {
+  outline: none;
+  border-color: rgba(208, 172, 103, 0.65);
+  box-shadow: 0 0 0 3px rgba(208, 172, 103, 0.12);
 }
